@@ -2,24 +2,23 @@ set nocompatible
 syntax on
 filetype plugin on
 
+set term=xterm-256color
 set number
 set relativenumber
-set ruler
 set autoindent
 set smartindent
 set encoding=utf-8
 set t_Co=256
 set background=dark
 set hlsearch
-set colorcolumn=81
-set mouse=a
-
+set colorcolumn=120
 set tabstop=4
 set shiftwidth=4
-set noexpandtab
+set expandtab
 set cindent
-
+set incsearch
 set wildmenu
+set wildmode=longest:list,full
 set completeopt=longest,menuone
 
 " Tab navigation like Firefox.
@@ -28,12 +27,15 @@ nnoremap <Tab>   :tabnext<CR>
 nnoremap <C-t>   :tabnew<CR>
 map <C-n> :Vexplore<CR>
 
+
 " FileExplorer
-let g:netrw_banner=0        " disable annoying banner
+let g:netrw_banner=0		" disable annoying banner
 let g:netrw_browse_split=4  " open in prior window
-let g:netrw_altv=1          " open splits to the right
-let g:netrw_liststyle=3     " tree view
+let g:netrw_altv=1		  " open splits to the right
+let g:netrw_liststyle=3	 " tree view
 let g:netrw_winsize=15
+
+noremap <silent> <C-n> :Vexplore<CR>
 
 " Treat visual lines as lines
 nnoremap j gj
@@ -46,9 +48,16 @@ nnoremap <C-J> <C-W><C-J>
 nnoremap <C-K> <C-W><C-K>
 nnoremap <C-L> <C-W><C-L>
 nnoremap <C-H> <C-W><C-H>
+set splitbelow
+set splitright
 
 " Line
 set noshowmode
+
+function Debug()
+	packadd termdebug
+	Termdebug()
+endfunction
 
 function! GetMode()
 	let m = mode()
@@ -80,18 +89,16 @@ set statusline+=\ %4*\ %c:%l/%L							"Col:line/numlines
 set statusline+=\ 										"Blank space at the end
 
 hi User1 ctermbg=Blue
-hi User2 ctermbg=Green ctermfg=Black
-hi User3 ctermbg=Black
-hi User4 ctermbg=Magenta ctermfg=Black
+hi User2 ctermbg=Green ctermfg=Black "White "Black
+hi User3 ctermbg=Black "White "Black
+hi User4 ctermbg=Magenta ctermfg=Black "White "Black
 
 au BufNewFile,BufRead *.py,*.hs
 	\ set tabstop=2 |
 	\ set softtabstop=2 |
 	\ set shiftwidth=2 |
-	\ set textwidth=80 |
+	\ set textwidth=120 |
 	\ set expandtab |
 	\ set autoindent |
 	\ set fileformat=unix
 
-au BufNewFile,BufRead *.tex
-	\ set colorcolumn=0

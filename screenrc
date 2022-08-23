@@ -1,0 +1,31 @@
+escape ^Bb
+
+# PREVIOUS WINDOW
+# # Ctrl + Alt + Left from gnome-terminal
+bindkey ^[[1;7C prev
+#
+# # Ctrl+Alt+Left from putty
+bindkey ^[^[[D prev
+#
+# # NEXT WINDOW
+# # Ctrl + Alt + Right from gnome-terminal
+bindkey ^[[1;7D next
+#
+# # Ctrl+Alt+Right from putty
+bindkey ^[^[[C next
+
+# the following two lines give a two-line status, with the current window highlighted
+hardstatus alwayslastline
+hardstatus string '%{= kG}[%= %{= kw}%-w%{+b yk} %n*%t%?(%u)%? %{-}%+w %=%{g}]'
+
+# huge scrollback buffer
+defscrollback 5000
+
+# 256 colors
+attrcolor b ".I"
+termcapinfo xterm 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+defbce on
+
+bind c screen 1 # window numbering starts at 1 not 0
+bind 0 select 10
+screen 1
