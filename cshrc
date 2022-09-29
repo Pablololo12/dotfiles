@@ -24,8 +24,11 @@ set autolist=ambiguous
 
 set green="%{\033[0;32m%}"
 set cyan="%{\033[0;36m%}"
-set end="%{\033[0m%}"
-set prompt = "${cyan}%m:${green}%c${end} "
-unset green cyan end
+set magenta="%{\033[1;35m%}"
+set yellow="%{\033[1;33m%}"
+set endC="%{\033[0m%}"
+setenv GIT_BRANCH_CMD "sh -c 'git branch --no-color 2> /dev/null' | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'"
+setenv hostnameS "sh -c 'hostname | cut -c-2'"
+alias precmd 'set prompt = "${cyan}`$hostnameS`:${green}%c${magenta}`$GIT_BRANCH_CMD`${endC} "'
 
 set path = ($path $home/bin)
