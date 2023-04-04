@@ -25,17 +25,6 @@ set completeopt=longest,menuone
 nnoremap <S-Tab> :tabprevious<CR>
 nnoremap <Tab>   :tabnext<CR>
 nnoremap <C-t>   :tabnew<CR>
-map <C-n> :Vexplore<CR>
-
-
-" FileExplorer
-let g:netrw_banner=0		" disable annoying banner
-let g:netrw_browse_split=4  " open in prior window
-let g:netrw_altv=1		  " open splits to the right
-let g:netrw_liststyle=3	 " tree view
-let g:netrw_winsize=15
-
-noremap <silent> <C-n> :Vexplore<CR>
 
 " Treat visual lines as lines
 nnoremap j gj
