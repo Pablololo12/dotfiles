@@ -72,7 +72,7 @@ vim.api.nvim_create_autocmd('filetype', {
 
 local function status_line()
   local mode = "%2{%v:lua.string.upper(v:lua.vim.fn.mode())%}"
-  local file_name = " %.16t"
+  local file_name = " %t"
   local buf_nr = " [%n]"
   local modified = " %-m"
   local file_type = " %y"
