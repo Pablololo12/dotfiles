@@ -1,25 +1,37 @@
-local set = vim.opt
+require('plugins')
 
+local set = vim.opt
 set.number=true
 set.relativenumber=true
+set.encoding="utf-8"
+set.bg="dark"
+set.colorcolumn="120"
+-- Search settings
+set.hlsearch=true
+set.incsearch=true
+-- tabs and identation
 set.autoindent=true
 set.smartindent=true
-set.encoding="utf-8"
-set.bg="light"
-set.hlsearch=true
-set.colorcolumn="120"
 set.tabstop=4
 set.shiftwidth=4
 set.expandtab=true
-set.cindent=true
-set.incsearch=true
+set.list=true
+-- Settings for completion
 set.wildmenu=true
-set.wildmode="longest:list,full"
+--set.wildoptions="fuzzy"
+set.wildmode="list:longest,full"
 set.completeopt="longest,menuone"
+-- Change how we split window
 set.splitbelow=true
 set.splitright=true
+-- Hide underneath status bar
 set.showmode=false
+-- No mouse for hardcore mode
 set.mouse=''
+-- To auto complete paths
+set.completeslash="/"
+-- To auto read files when they have been modified
+set.autoread=true
 
 local bind = vim.keymap
 -- Space as leader key
@@ -31,20 +43,21 @@ bind.set('n', '<Tab>', ':tabnext<CR>')
 bind.set({'n','v'}, 'j', 'gj')
 bind.set({'n','v'}, 'k', 'gk')
 
-bind.set('n', '<leader>l', ':ls<CR>')
-bind.set('n', '<leader>f', ':Vexplore<CR>')
-
 bind.set('n', '<C-J>', '<C-W><C-J>')
 bind.set('n', '<C-K>', '<C-W><C-K>')
 bind.set('n', '<C-L>', '<C-W><C-L>')
 bind.set('n', '<C-H>', '<C-W><C-H>')
 
--- Netrw options
-vim.g.netrw_banner=0
-vim.g.netrw_browse_split=4
-vim.g.netrw_altv=1
-vim.g.netrw_liststyle=3
-vim.g.netrw_winsize=15
+bind.set('n', '<C-d>', '<C-d>zz')
+bind.set('n', '<C-u>', '<C-u>zz')
+
+local builtin = require('telescope.builtin')
+require("telescope").load_extension "file_browser"
+bind.set('n', '<leader>ff', builtin.find_files, {})
+bind.set('n', '<leader>fg', builtin.live_grep, {})
+bind.set('n', '<leader>fb', builtin.buffers, {})
+bind.set('n', '<leader>fh', builtin.help_tags, {})
+bind.set('n', '<leader>n', ':Telescope file_browser<CR>')
 
 -- Personal commands
 vim.api.nvim_create_user_command(
@@ -70,51 +83,10 @@ vim.api.nvim_create_autocmd('filetype', {
 })
 
 
-local function status_line()
-  local mode = "%2{%v:lua.string.upper(v:lua.vim.fn.mode())%}"
-  local file_name = " %t"
-  local buf_nr = " [%n]"
-  local modified = " %-m"
-  local file_type = " %y"
-  local right_align = "%="
-  local line_no = " %5([%c:%l/%L%)]"
-  local encoding = "%{&ff}"
+-- Status line
+require('lualine').setup{
+    options = {
+        theme = 'modus-vivendi',
+    }
+}
 
-  return string.format(
-    "%s%s%s%s%s%s%s%s",
-    mode,
-    file_name,
-    buf_nr,
-    modified,
-    right_align,
-    encoding,
-    file_type,
-    line_no
-  )
-end
-
-vim.opt.statusline = status_line()
-
-local function netrw_mapping()
-  local bufmap = function(lhs, rhs)
-    local opts = {buffer = true, remap = true}
-    vim.keymap.set('n', lhs, rhs, opts)
-  end
-
-  -- close window
-  bufmap('<leader>f', ':q<CR>')
-
-  -- Better navigation
-  bufmap('l', ':q<CR>')
-
-  -- Toggle dotfiles
-  bufmap('.', 'gh')
-end
-
-local user_cmds = vim.api.nvim_create_augroup('user_cmds', {clear = true})
-vim.api.nvim_create_autocmd('filetype', {
-  pattern = 'netrw',
-  group = user_cmds,
-  desc = 'Keybindings for netrw',
-  callback = netrw_mapping
-})

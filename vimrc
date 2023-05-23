@@ -20,6 +20,11 @@ set incsearch
 set wildmenu
 set wildmode=longest:list,full
 set completeopt=longest,menuone
+set mouse=''
+set splitbelow
+set splitright
+" Line
+set noshowmode
 
 " Tab navigation like Firefox.
 nnoremap <S-Tab> :tabprevious<CR>
@@ -37,11 +42,9 @@ nnoremap <C-J> <C-W><C-J>
 nnoremap <C-K> <C-W><C-K>
 nnoremap <C-L> <C-W><C-L>
 nnoremap <C-H> <C-W><C-H>
-set splitbelow
-set splitright
 
-" Line
-set noshowmode
+nnoremap <C-d> <C-d>zz
+nnoremap <C-u> <C-u>zz
 
 function Debug()
 	packadd termdebug
