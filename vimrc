@@ -20,7 +20,7 @@ set incsearch
 set wildmenu
 set wildmode=longest:list,full
 set completeopt=longest,menuone
-set mouse=''
+set mouse=
 set splitbelow
 set splitright
 " Line
