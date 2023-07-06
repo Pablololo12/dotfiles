@@ -51,6 +51,8 @@ bind.set('n', '<C-H>', '<C-W><C-H>')
 bind.set('n', '<C-d>', '<C-d>zz')
 bind.set('n', '<C-u>', '<C-u>zz')
 
+bind.set('n', '<leader>o', ':OpenOtherFile<CR>')
+
 local builtin = require('telescope.builtin')
 require("telescope").load_extension "file_browser"
 bind.set('n', '<leader>ff', builtin.find_files, {})
@@ -67,6 +69,24 @@ vim.api.nvim_create_user_command(
     vim.cmd('Termdebug()')
   end,
   {}
+)
+
+vim.api.nvim_create_user_command(
+    'OpenOtherFile',
+    function()
+        local current_file = vim.api.nvim_eval('expand("%:p")')
+        local path, filename, extension = string.match(current_file, "(.-)([^\\/]-)([^\\/%.]+)$")
+        otherFile = path .. filename
+        if extension == "cpp" then
+            otherFile = otherFile .. "h"
+        elseif extension == "h" then
+            otherFile = otherFile .. "cpp"
+        else
+            return
+        end
+        vim.cmd(":vs " .. otherFile)
+    end,
+    {}
 )
 
 -- Set configs for individual filetypes
