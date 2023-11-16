@@ -1,5 +1,8 @@
 (require 'init-elpa)
 
+;; Open maximized
+(add-hook 'window-setup-hook 'toggle-frame-maximized t)
+
 (set-face-attribute 'default nil :font "DroidSansM Nerd Font Mono")
 ;; Theme
 (require-package 'atom-one-dark-theme)
@@ -9,7 +12,10 @@
 
 ;; Change width threshold for splitting vertically
 (setq-default split-width-threshold 125)
-(setq-default split-height-threshold 200)
+(setq-default split-height-threshold 100)
+;; Rebalance windows everytime you split or close
+(dolist (fn '(split-window-right split-window-below delete-window))
+  (advice-add fn :after #'balance-windows))
 ;; Inhibit startup message
 (setq inhibit-startup-message t)
 ;; Disable menu bars and graphic stuff
@@ -19,7 +25,7 @@
 (when (fboundp 'scroll-bar-mode)
   (scroll-bar-mode  -1))
 
-(setq
+(setq-default
  x-select-enable-clipboard t
  x-select-enable-primary t
  save-interprogram-paste-before-kill t
