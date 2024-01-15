@@ -28,18 +28,12 @@
 (require 'evil)
 (evil-mode 1)
 
+;; Haskell
+(require-package 'haskell-mode)
+
 ;; Personal settings
 ;; Auto reload buffers on file change
 (global-auto-revert-mode t)
-
-;; org options
-(setq org-babel-python-command "python3")
-(org-babel-do-load-languages
- 'org-babel-load-languages '((C . t)
-			                 (python . t)
-                             (rust . t)))
-
-(require-package 'ob-rust)
 
 ;; Imenu to jump to functions in code
 (setq-default imenu-auto-rescan t)
@@ -55,25 +49,7 @@
 (setq c-set-style "k&r")
 (setq c-basic-offset 4)
 
-;; Open pane with ToDo
-(defun open-todo ()
-  "Opens a pane with the ToDo file"
-  (interactive)
-  (select-window (split-window (frame-root-window) nil 'below))
-  (find-file "~/OneDrive - Arm/Documents/Notes/todo.org"))
-;; TODO check env to find Todo
-(defun toggle-todo ()
-  "Toggles the todo"
-  (interactive)
-  (let ((win nil))
-  (walk-windows (lambda (window)
-                  (select-window window)
-                  (if (get-file-buffer "todo.org")
-                          (setq win window))))
-  (if win
-        (delete-window win)
-        (open-todo))))
-
-(global-set-key (kbd "M-t") 'toggle-todo)
+;; C++ options
+(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 
 (provide 'init-edit)
