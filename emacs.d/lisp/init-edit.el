@@ -7,17 +7,10 @@
 (ivy-mode 1)
 
 ;; project.el
-(defun before-switch-project-hook ()
-  "Removes other windows when openning a new project"
-  (delete-other-windows))
-(setq projectile-before-switch-project-hook '(before-switch-project-hook))
-
-(require-package 'projectile)
-(require 'projectile)
-(projectile-mode +1)
-;; Recommended keymap prefix on Windows/Linux
-(define-key projectile-mode-map (kbd "M-p") 'projectile-command-map)
-(setq projectile-globally-ignored-directories '("build"))
+(require 'project)
+(bind-key "M-p" project-prefix-map)
+(setq project-kill-buffers-display-buffer-list t)
+(setq project-ignores (list "build"))
 
 ;; Evil mode
 (require-package 'evil)
@@ -42,6 +35,7 @@
 
 ;; Open other file in split window
 (global-set-key (kbd "M-o") 'ff-find-other-file-other-window)
+(global-set-key (kbd "M-O") 'ff-find-other-file)
 
 ;; Set 4 spaces
 (setq-default indent-tabs-mode nil)

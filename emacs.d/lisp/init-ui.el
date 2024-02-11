@@ -7,7 +7,11 @@
 (set-face-attribute 'default nil :font "Hack Nerd Font")
 ;; Theme
 (require-package 'modus-themes)
-(load-theme 'modus-vivendi t)
+(require-package 'catppuccin-theme)
+;;(load-theme 'modus-vivendi t)
+(load-theme 'catppuccin :no-confirm)
+(setq catppuccin-flavor 'frappe) ;; or 'latte, 'macchiato, or 'mocha
+(catppuccin-reload)
 
 (set-cursor-color "#cccccc")
 
@@ -83,6 +87,8 @@ Pass arg to ‘shell’."
                                    'face 'font-lock-builtin-face))
 
 
+               '(:eval (propertize (projectile-project-name)
+                                   'face 'font-lock-keyword-face))
                ;; the buffer name; the file name as a tool tip
                '(:eval (propertize " %b "
                                    'face
@@ -96,6 +102,9 @@ Pass arg to ‘shell’."
                (propertize "%02l" 'face 'font-lock-keyword-face) ","
                (propertize "%02c" 'face 'font-lock-keyword-face)
                ") "
+
+               '(:eval (propertize (file-remote-p default-directory 'host)
+                                   'face 'font-lock-type-face))
 
                ;; spaces to align right
                '(:eval (propertize
