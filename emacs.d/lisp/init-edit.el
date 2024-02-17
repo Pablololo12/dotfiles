@@ -46,4 +46,11 @@
 ;; C++ options
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 
+;; Magit
+(require-package 'magit)
+;; make magit use same buffer
+(setq magit-display-buffer-function (lambda (buffer)
+                                    (display-buffer buffer '(display-buffer-same-window))))
+
+
 (provide 'init-edit)

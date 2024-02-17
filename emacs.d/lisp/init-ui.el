@@ -10,7 +10,7 @@
 (require-package 'catppuccin-theme)
 ;;(load-theme 'modus-vivendi t)
 (load-theme 'catppuccin :no-confirm)
-(setq catppuccin-flavor 'frappe) ;; or 'latte, 'macchiato, or 'mocha
+(setq catppuccin-flavor 'frappe) ;; or 'frappe', 'latte, 'macchiato, or 'mocha
 (catppuccin-reload)
 
 (set-cursor-color "#cccccc")
