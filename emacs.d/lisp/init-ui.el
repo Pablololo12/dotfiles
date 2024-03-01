@@ -1,19 +1,8 @@
 (require 'init-elpa)
 
-;; Open maximized
-(add-hook 'window-setup-hook 'toggle-frame-maximized t)
+;;(transient-mark-mode 1)
 
-;;(set-face-attribute 'default nil :font "DroidSansM Nerd Font Mono")
 (set-face-attribute 'default nil :font "Hack Nerd Font")
-;; Theme
-(require-package 'modus-themes)
-(require-package 'catppuccin-theme)
-;;(load-theme 'modus-vivendi t)
-(load-theme 'catppuccin :no-confirm)
-(setq catppuccin-flavor 'frappe) ;; or 'frappe', 'latte, 'macchiato, or 'mocha
-(catppuccin-reload)
-
-(set-cursor-color "#cccccc")
 
 ;; Change width threshold for splitting vertically
 (setq-default split-width-threshold 125)
@@ -21,14 +10,6 @@
 ;; Rebalance windows everytime you split or close
 (dolist (fn '(split-window-right split-window-below delete-window))
   (advice-add fn :after #'balance-windows))
-;; Inhibit startup message
-(setq inhibit-startup-message t)
-;; Disable menu bars and graphic stuff
-(menu-bar-mode -1)
-(when (fboundp 'tool-bar-mode)
-  (tool-bar-mode -1))
-(when (fboundp 'scroll-bar-mode)
-  (scroll-bar-mode  -1))
 
 (setq-default
  x-select-enable-clipboard t
@@ -45,22 +26,6 @@
 
 ;; Show trailing white space
 (setq-default show-trailing-whitespace t)
-
-;; Show line at 120 characters
-(require 'whitespace)
-(setq-default whitespace-line-column 120)
-(setq-default whitespace-style '(face lines-tail))
-(add-hook 'prog-mode-hook 'whitespace-mode)
-
-;; Org options
-(require-package 'all-the-icons)
-(require-package 'org-bullets)
-(require 'org-bullets)
-(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-
-(setq inhibit-splash-screen t)
-(transient-mark-mode 1)
-(require 'org)
 
 ;; Popup shell
 (defun gk-pop-shell (arg)
@@ -131,19 +96,59 @@ Pass arg to ‘shell’."
 
                ))
 
+(defun set-light()
+  (interactive)
+    (set-face-attribute 'mode-line nil
+                        :background "#ffffff"
+                        :foreground "white"
+                        :box '(:line-width 8 :color "#ffffff")
+                        :overline nil
+                        :underline nil)
 
-(set-face-attribute 'mode-line nil
-                    :background "#353644"
-                    :foreground "white"
-                    :box '(:line-width 8 :color "#353644")
-                    :overline nil
-                    :underline nil)
+    (set-face-attribute 'mode-line-inactive nil
+                        :background "#d9d9d9"
+                        :foreground "white"
+                        :box '(:line-width 8 :color "#d9d9d9")
+                        :overline nil
+                        :underline nil)
+    ;; Theme
+    (require-package 'catppuccin-theme)
+    (setq catppuccin-flavor 'latte)
+    (load-theme 'catppuccin :no-confirm)) ;; or 'frappe', 'latte, 'macchiato, or 'mocha
+    ;;(require-package 'modus-themes)
+    ;;(require 'modus-themes)
+    ;;(load-theme 'modus-operandi :no-confirm))
 
-(set-face-attribute 'mode-line-inactive nil
-                    :background "#565063"
-                    :foreground "white"
-                    :box '(:line-width 8 :color "#565063")
-                    :overline nil
-                    :underline nil)
+(defun set-dark()
+  (interactive)
+    (set-face-attribute 'mode-line nil
+                        :background "#353644"
+                        :foreground "black" ;;
+                        :box '(:line-width 8 :color "#353644")
+                        :overline nil
+                        :underline nil)
+
+    (set-face-attribute 'mode-line-inactive nil
+                        :background "#565063"
+                        :foreground "black"
+                        :box '(:line-width 8 :color "#565063")
+                        :overline nil
+                        :underline nil)
+    ;; Theme
+    (require-package 'catppuccin-theme)
+    (setq catppuccin-flavor 'frappe)
+    (load-theme 'catppuccin :no-confirm)) ;; or 'frappe', 'latte, 'macchiato, or 'mocha
+
+
+(defun set-system-dark-mode ()
+  (interactive)
+  (if (string= (shell-command-to-string "defaults read -g AppleInterfaceStyle") "Dark\n")
+       (set-dark)
+    (set-light)))
+
+(pcase system-type
+  ('darwin (set-system-dark-mode))
+  (syst (set-dark())))
+
 
 (provide 'init-ui)

@@ -45,6 +45,7 @@
 
 ;; C++ options
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
+(add-to-list 'auto-mode-alist '("\\.cppm\\'" . c++-mode))
 
 ;; Magit
 (require-package 'magit)
