@@ -46,14 +46,9 @@ Pass arg to ‘shell’."
 ;; https://github.com/gonsie/dotfiles/blob/main/emacs/theme.el
 (setq-default mode-line-format
               (list
-
                ;; day and time
                '(:eval (propertize (format-time-string " %b %d %H:%M ")
                                    'face 'font-lock-builtin-face))
-
-
-               '(:eval (propertize (projectile-project-name)
-                                   'face 'font-lock-keyword-face))
                ;; the buffer name; the file name as a tool tip
                '(:eval (propertize " %b "
                                    'face
@@ -61,22 +56,20 @@ Pass arg to ‘shell’."
                                      (if face 'font-lock-warning-face
                                        'font-lock-type-face))
                                    'help-echo (buffer-file-name)))
-
                ;; line and column
                " (" ;; '%02' to set to 2 chars at least; prevents flickering
                (propertize "%02l" 'face 'font-lock-keyword-face) ","
                (propertize "%02c" 'face 'font-lock-keyword-face)
                ") "
-
                '(:eval (propertize (file-remote-p default-directory 'host)
                                    'face 'font-lock-type-face))
-
-               ;; spaces to align right
+               ;; spaces to align righT
                '(:eval (propertize
                 " " 'display
                 `((space :align-to (- (+ right right-fringe right-margin)
                                       ,(+ 20 (string-width (if (listp mode-name) (car mode-name) mode-name))))))))
-
+               '(:eval (propertize (project-name (project-current))
+                                   'face 'font-lock-keyword-face))
                '(:eval
                 (if vc-mode
                     (propertize
@@ -88,36 +81,21 @@ Pass arg to ‘shell’."
                     'face 'font-lock-keyword-face)))
                ;; the current major mode
                (propertize " %m " 'face 'font-lock-string-face)
-
                ;; relative position, size of file
                " ["
                (propertize "%I" 'face 'font-lock-constant-face) ;; size
                "] "
-
                ))
 
 (defun set-light()
   (interactive)
-    (set-face-attribute 'mode-line nil
-                        :background "#ffffff"
-                        :foreground "white"
-                        :box '(:line-width 8 :color "#ffffff")
-                        :overline nil
-                        :underline nil)
-
-    (set-face-attribute 'mode-line-inactive nil
-                        :background "#d9d9d9"
-                        :foreground "white"
-                        :box '(:line-width 8 :color "#d9d9d9")
-                        :overline nil
-                        :underline nil)
-    ;; Theme
-    (require-package 'catppuccin-theme)
-    (setq catppuccin-flavor 'latte)
-    (load-theme 'catppuccin :no-confirm)) ;; or 'frappe', 'latte, 'macchiato, or 'mocha
-    ;;(require-package 'modus-themes)
-    ;;(require 'modus-themes)
-    ;;(load-theme 'modus-operandi :no-confirm))
+    (setq modus-themes-common-palette-overrides
+          '((bg-mode-line-active bg-term-white-bright)
+            (border-mode-line-active bg-term-white-bright)
+            (border-mode-line-inactive unspecified)
+            ))
+    (require-package 'modus-themes)
+    (load-theme 'modus-operandi :no-confirm))
 
 (defun set-dark()
   (interactive)
@@ -146,9 +124,7 @@ Pass arg to ‘shell’."
        (set-dark)
     (set-light)))
 
-(pcase system-type
-  ('darwin (set-system-dark-mode))
-  (syst (set-dark())))
-
+;; Normally set to light
+(set-light)
 
 (provide 'init-ui)

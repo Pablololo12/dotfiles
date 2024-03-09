@@ -4,7 +4,7 @@ local set = vim.opt
 set.number=true
 set.relativenumber=true
 set.encoding="utf-8"
-set.bg="dark"
+--set.bg="dark"
 set.colorcolumn="120"
 -- Search settings
 set.hlsearch=true
@@ -110,3 +110,12 @@ require('lualine').setup{
     }
 }
 
+require("catppuccin").setup {
+    background = {
+        light = "latte",
+        dark = "frappe"
+    }
+}
+
+vim.cmd.colorscheme "catppuccin-latte"
+vim.o.background = "light"

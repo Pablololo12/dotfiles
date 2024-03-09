@@ -2,14 +2,11 @@
 
 ;; Fuzzy search
 (require-package 'ivy)
-(require-package 'counsel)
 (require-package 'ag)
-(ivy-mode 1)
+(ivy-mode)
 
 ;; project.el
-(require 'project)
 (bind-key "M-p" project-prefix-map)
-(setq project-kill-buffers-display-buffer-list t)
 (setq project-ignores (list "build"))
 
 ;; Evil mode
@@ -18,7 +15,6 @@
 (setq evil-want-C-u-scroll t)
 (setq evil-want-C-i-jump nil)
 (setq evil-search-module 'evil-search)
-(require 'evil)
 (evil-mode 1)
 
 ;; Haskell
@@ -37,6 +33,7 @@
 (global-set-key (kbd "M-o") 'ff-find-other-file-other-window)
 (global-set-key (kbd "M-O") 'ff-find-other-file)
 
+
 ;; Set 4 spaces
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 4)
@@ -52,6 +49,5 @@
 ;; make magit use same buffer
 (setq magit-display-buffer-function (lambda (buffer)
                                     (display-buffer buffer '(display-buffer-same-window))))
-
 
 (provide 'init-edit)
