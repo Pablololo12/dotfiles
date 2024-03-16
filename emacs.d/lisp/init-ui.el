@@ -67,7 +67,7 @@ Pass arg to ‘shell’."
                '(:eval (propertize
                 " " 'display
                 `((space :align-to (- (+ right right-fringe right-margin)
-                                      ,(+ 20 (string-width (if (listp mode-name) (car mode-name) mode-name))))))))
+                                      ,(+ 25 (string-width (if (listp mode-name) (car mode-name) mode-name))))))))
                '(:eval (propertize (project-name (project-current))
                                    'face 'font-lock-keyword-face))
                '(:eval
@@ -87,44 +87,23 @@ Pass arg to ‘shell’."
                "] "
                ))
 
-(defun set-light()
-  (interactive)
-    (setq modus-themes-common-palette-overrides
-          '((bg-mode-line-active bg-term-white-bright)
-            (border-mode-line-active bg-term-white-bright)
-            (border-mode-line-inactive unspecified)
-            ))
-    (require-package 'modus-themes)
-    (load-theme 'modus-operandi :no-confirm))
+;;(require-package 'modus-themes)
+;;(require 'modus-themes)
+(require-theme 'modus-themes)
+(setq modus-themes-italic-constructs t
+    modus-themes-bold-constructs t)
+(setq modus-themes-common-palette-overrides
+      '((border-mode-line-active bg-mode-line-active)
+        (border-mode-line-inactive bg-mode-line-inactive)
+        (bg-mode-line-active bg-ochre)
+        (fg-mode-line-active fg-main)
+        (border-mode-line-active bg-yellow-intense)
+        (comment yellow-cooler)
+        (string green-cooler)))
+(load-theme 'modus-operandi t)
 
-(defun set-dark()
-  (interactive)
-    (set-face-attribute 'mode-line nil
-                        :background "#353644"
-                        :foreground "black" ;;
-                        :box '(:line-width 8 :color "#353644")
-                        :overline nil
-                        :underline nil)
-
-    (set-face-attribute 'mode-line-inactive nil
-                        :background "#565063"
-                        :foreground "black"
-                        :box '(:line-width 8 :color "#565063")
-                        :overline nil
-                        :underline nil)
-    ;; Theme
-    (require-package 'catppuccin-theme)
-    (setq catppuccin-flavor 'frappe)
-    (load-theme 'catppuccin :no-confirm)) ;; or 'frappe', 'latte, 'macchiato, or 'mocha
-
-
-(defun set-system-dark-mode ()
-  (interactive)
-  (if (string= (shell-command-to-string "defaults read -g AppleInterfaceStyle") "Dark\n")
-       (set-dark)
-    (set-light)))
-
-;; Normally set to light
-(set-light)
+;; Can toggle with modus-themes-toggle for dark mode
+(define-key global-map (kbd "<f5>") #'modus-themes-toggle)
+(define-key global-map (kbd "<f6>") #'modus-themes-select)
 
 (provide 'init-ui)
