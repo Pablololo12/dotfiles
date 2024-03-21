@@ -45,50 +45,54 @@ Pass arg to ‘shell’."
 ;; Status bar
 ;; https://github.com/gonsie/dotfiles/blob/main/emacs/theme.el
 (setq-default mode-line-format
-              (list
-               ;; day and time
-               '(:eval (propertize (format-time-string " %b %d %H:%M ")
-                                   'face 'font-lock-builtin-face))
-               ;; the buffer name; the file name as a tool tip
-               '(:eval (propertize " %b "
-                                   'face
-                                   (let ((face (buffer-modified-p)))
-                                     (if face 'font-lock-warning-face
-                                       'font-lock-type-face))
-                                   'help-echo (buffer-file-name)))
-               ;; line and column
-               " (" ;; '%02' to set to 2 chars at least; prevents flickering
-               (propertize "%02l" 'face 'font-lock-keyword-face) ","
-               (propertize "%02c" 'face 'font-lock-keyword-face)
-               ") "
-               '(:eval (propertize (file-remote-p default-directory 'host)
-                                   'face 'font-lock-type-face))
-               ;; spaces to align righT
-               '(:eval (propertize
-                " " 'display
-                `((space :align-to (- (+ right right-fringe right-margin)
-                                      ,(+ 25 (string-width (if (listp mode-name) (car mode-name) mode-name))))))))
-               '(:eval (propertize (project-name (project-current))
-                                   'face 'font-lock-keyword-face))
-               '(:eval
-                (if vc-mode
-                    (propertize
-                    (let* ((noback (replace-regexp-in-string (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode))
-                           (face (cond ((string-match "^ -" noback) 'mode-line-vc)
-                            ((string-match "^ [:@]" noback) 'mode-line-vc-edit)
-                            ((string-match "^ [!\\?]" noback) 'mode-line-vc-modified))))
-                      (format " %s" (substring noback 2)))
-                    'face 'font-lock-keyword-face)))
-               ;; the current major mode
-               (propertize " %m " 'face 'font-lock-string-face)
-               ;; relative position, size of file
-               " ["
-               (propertize "%I" 'face 'font-lock-constant-face) ;; size
-               "] "
-               ))
+    (list
+    ;; day and time
+    '(:eval (propertize (format-time-string " %b %d %H:%M ")
+                        'face 'font-lock-builtin-face))
+    ;; the buffer name; the file name as a tool tip
+    '(:eval (propertize " %b "
+                        'face
+                        (let ((face (buffer-modified-p)))
+                            (if face 'font-lock-warning-face
+                            'font-lock-type-face))
+                        'help-echo (buffer-file-name)))
+    ;; line and column
+    " (" ;; '%02' to set to 2 chars at least; prevents flickering
+    (propertize "%02l" 'face 'font-lock-keyword-face) ","
+    (propertize "%02c" 'face 'font-lock-keyword-face)
+    ") "
+    '(:eval (let ((remote (file-remote-p default-directory 'host)))
+                (cond
+                ((null remote) "")
+                (t (propertize remote
+                        'face 'font-lock-type-face)))))
+    ;; spaces to align righT
+    '(:eval (propertize
+    " " 'display
+    `((space :align-to (- (+ right right-fringe right-margin)
+                            ,(+ 25 (string-width (if (listp mode-name) (car mode-name) mode-name))))))))
+    '(:eval (let ((name (project-current)))
+                (cond
+                ((null name) "")
+                (t (propertize (project-name name)
+                        'face 'font-lock-keyword-face)))))
+    '(:eval
+    (if vc-mode
+        (propertize
+        (let* ((noback (replace-regexp-in-string (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode))
+                (face (cond ((string-match "^ -" noback) 'mode-line-vc)
+                ((string-match "^ [:@]" noback) 'mode-line-vc-edit)
+                ((string-match "^ [!\\?]" noback) 'mode-line-vc-modified))))
+            (format " %s" (substring noback 2)))
+        'face 'font-lock-keyword-face)))
+    ;; the current major mode
+    (propertize " %m " 'face 'font-lock-string-face)
+    ;; relative position, size of file
+    " ["
+    (propertize "%I" 'face 'font-lock-constant-face) ;; size
+    "] "
+    ))
 
-;;(require-package 'modus-themes)
-;;(require 'modus-themes)
 (require-theme 'modus-themes)
 (setq modus-themes-italic-constructs t
     modus-themes-bold-constructs t)
