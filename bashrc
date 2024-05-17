@@ -39,12 +39,7 @@ _RESET=$(tput sgr0)
 _BOLD=$(tput bold)
 PS1='${_CYAN}$(hostnameS)${_RED}:${_GREEN}\W${_MAGENTA}$(git_branch_cmd)${_RESET} '
 
-###########
-# Exports #
-###########
-
-export PATH=/opt/homebrew/opt/flex/bin:$PATH
-export PATH=~/.cargo/bin:$PATH
+# For work related configs
 
 if [ -f ~/.bashrc_secrets ]; then
   source ~/.bashrc_secrets

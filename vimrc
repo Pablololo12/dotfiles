@@ -9,7 +9,8 @@ set autoindent
 set smartindent
 set encoding=utf-8
 set t_Co=256
-set background=dark
+"set background=dark
+"set background=light
 set hlsearch
 set colorcolumn=120
 set tabstop=4

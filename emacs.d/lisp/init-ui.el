@@ -2,7 +2,9 @@
 
 ;;(transient-mark-mode 1)
 
-(set-face-attribute 'default nil :font "Hack Nerd Font")
+;;(set-face-attribute 'default nil :font "Hack Nerd Font")
+(set-face-attribute 'default nil :font "Zed Mono" :height 140 :width 'semi-expanded)
+;;(set-face-attribute 'default nil :font "Comic Mono")
 
 ;; Change width threshold for splitting vertically
 (setq-default split-width-threshold 125)
@@ -46,9 +48,6 @@ Pass arg to ‘shell’."
 ;; https://github.com/gonsie/dotfiles/blob/main/emacs/theme.el
 (setq-default mode-line-format
     (list
-    ;; day and time
-    '(:eval (propertize (format-time-string " %b %d %H:%M ")
-                        'face 'font-lock-builtin-face))
     ;; the buffer name; the file name as a tool tip
     '(:eval (propertize " %b "
                         'face
@@ -93,21 +92,19 @@ Pass arg to ‘shell’."
     "] "
     ))
 
-(require-theme 'modus-themes)
-(setq modus-themes-italic-constructs t
-    modus-themes-bold-constructs t)
-(setq modus-themes-common-palette-overrides
-      '((border-mode-line-active bg-mode-line-active)
-        (border-mode-line-inactive bg-mode-line-inactive)
-        (bg-mode-line-active bg-ochre)
-        (fg-mode-line-active fg-main)
-        (border-mode-line-active bg-yellow-intense)
-        (comment yellow-cooler)
-        (string green-cooler)))
-(load-theme 'modus-operandi t)
+;;(require-package 'ef-themes)
+;;(setq ef-themes-to-toggle '(ef-cyprus ef-elea-dark))
+;;(mapc #'disable-theme custom-enabled-themes)
+;;(load-theme 'ef-cyprus :no-confirm)
+;;
+;;;; Can toggle with modus-themes-toggle for dark mode
+;;(define-key global-map (kbd "<f5>") #'ef-themes-toggle)
+;;(define-key global-map (kbd "<f6>") #'ef-themes-select)
 
-;; Can toggle with modus-themes-toggle for dark mode
-(define-key global-map (kbd "<f5>") #'modus-themes-toggle)
-(define-key global-map (kbd "<f6>") #'modus-themes-select)
+(require-package 'catppuccin-theme)
+(load-theme 'catppuccin :no-confirm)
+(setq catppuccin-flavor 'latte) ;; or 'frappe', 'latte, 'macchiato, or 'mocha
+(catppuccin-reload)
+(define-key global-map (kbd "<f5>") #'catppuccin-load-flavor)
 
 (provide 'init-ui)

@@ -31,4 +31,8 @@ setenv GIT_BRANCH_CMD "sh -c 'git branch --no-color 2> /dev/null' | sed -e '/^[^
 setenv hostnameS "sh -c 'hostname | cut -c-2'"
 alias precmd 'set prompt = "${cyan}`$hostnameS`:${green}%c${magenta}`$GIT_BRANCH_CMD`${endC} "'
 
-set path = ($path $home/bin)
+source ~/.cshrc_secrets
+alias emailme /Users/pabher02/utilities/emailme/emailme.py
+setenv PATH /opt/homebrew/opt/flex/bin:$PATH
+setenv PATH ~/.cargo/bin:$PATH
+setenv ORGTODO ~/Documents/Notes

@@ -16,7 +16,7 @@ config.font = wezterm.font('Hack Nerd Font', {weight = 'Bold'})
 config.use_fancy_tab_bar = False
 config.enable_tab_bar = False
 
-config.window_background_opacity=0.9
+--config.window_background_opacity=0.9
 
 config.hide_tab_bar_if_only_one_tab = true
 
