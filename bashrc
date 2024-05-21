@@ -29,15 +29,16 @@ hostnameS() {
     hostname | cut -c-2
 }
 
-_GREEN=$(tput setaf 2)
-_BLUE=$(tput setaf 4)
-_CYAN=$(tput setaf 6)
-_RED=$(tput setaf 1)
-_YELLOW=$(tput setaf 3)
-_MAGENTA=$(tput setaf 5)
-_RESET=$(tput sgr0)
-_BOLD=$(tput bold)
-PS1='${_CYAN}$(hostnameS)${_RED}:${_GREEN}\W${_MAGENTA}$(git_branch_cmd)${_RESET} '
+_GREEN='\[\033[0;32m\]'
+_BLUE='\[\033[0;34m\]'
+_CYAN='\[\033[0;36m\]'
+_RED='\[\033[0;31m\]'
+_YELLOW='\[\033[0;33m\]'
+_MAGENTA='\[\033[0;35m\]'
+_RESET='\[\033[0m\]'
+_BOLD='\[\033[1m\]'
+
+PS1="${_CYAN}\$(hostnameS)${_RED}:${_GREEN}\W${_MAGENTA}\$(git_branch_cmd)${_RESET} "
 
 # For work related configs
 
