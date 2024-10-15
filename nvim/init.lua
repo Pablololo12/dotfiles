@@ -28,8 +28,6 @@ set.splitright=true
 set.showmode=false
 -- No mouse for hardcore mode
 set.mouse=''
--- To auto complete paths
-set.completeslash="/"
 -- To auto read files when they have been modified
 set.autoread=true
 
@@ -117,5 +115,5 @@ require("catppuccin").setup {
     }
 }
 
-vim.cmd.colorscheme "catppuccin-latte"
-vim.o.background = "light"
+vim.cmd.colorscheme "catppuccin-frappe"
+vim.o.background = "dark"

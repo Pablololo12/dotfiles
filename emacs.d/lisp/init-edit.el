@@ -5,9 +5,11 @@
 (require-package 'ag)
 (ivy-mode)
 
-;; project.el
-(bind-key "M-p" project-prefix-map)
-(setq project-ignores (list "build"))
+;; projectile
+(require-package 'projectile)
+(projectile-mode +1)
+(define-key projectile-mode-map (kbd "M-p") 'projectile-command-map)
+(setq projectile-globally-ignored-directories '("build"))
 
 ;; Evil mode
 (require-package 'evil)
@@ -33,7 +35,6 @@
 (global-set-key (kbd "M-o") 'ff-find-other-file-other-window)
 (global-set-key (kbd "M-O") 'ff-find-other-file)
 
-
 ;; Set 4 spaces
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 4)
@@ -49,5 +50,12 @@
 ;; make magit use same buffer
 (setq magit-display-buffer-function (lambda (buffer)
                                     (display-buffer buffer '(display-buffer-same-window))))
+
+;; Tramp config
+(setq vc-handled-backends '(Git))
+(setq tramp-verbose 1)
+(setq auto-revert-remote-files nil)
+(setq tramp-use-ssh-controlmaster-options nil)
+(setq tramp-auto-save-directory "/tmp")
 
 (provide 'init-edit)

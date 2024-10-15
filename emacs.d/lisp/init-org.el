@@ -21,7 +21,7 @@
 (setq denote-prompts '(title keywords))
 (setq denote-rename-no-confirm nil) ; Set to t if you are familiar with `denote-rename-file'
 (setq denote-backlinks-show-context t)
-(add-hook 'find-file-hook #'denote-link-buttonize-buffer)
+;;(add-hook 'find-file-hook #'denote-link-buttonize-buffer)
 
 (let ((map global-map))
   (define-key map (kbd "C-c n n") #'denote)

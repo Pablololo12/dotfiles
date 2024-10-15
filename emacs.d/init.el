@@ -25,10 +25,11 @@
   (menu-bar-mode -1))
 
 (setq inhibit-splash-screen t ;; no thanks
-        use-file-dialog nil ;; don't use system file dialog
-        tab-bar-new-button-show nil ;; don't show new tab button
-        tab-bar-close-button-show nil ;; don't show tab close button
-        tab-line-close-button-show nil) ;; don't show tab close button
+        use-file-dialog nil) ;; don't use system file dialog
+
+(setenv "PATH" (concat (getenv "PATH") ":/opt/homebrew/bin:/usr/local/bin"))
+(add-to-list 'exec-path "/usr/local/bin/")
+(add-to-list 'exec-path "/opt/homebrew/bin/")
 
 (require 'init-elpa)
 (require 'init-edit)
@@ -44,7 +45,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(ivy-posframe ef-themes vertico pdf-tools org-bullets modus-themes magit ivy haskell-mode evil denote catppuccin-theme ag)))
+   '(projectile ivy-posframe ef-themes org-bullets modus-themes magit ivy haskell-mode evil denote ag)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

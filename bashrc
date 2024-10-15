@@ -7,6 +7,8 @@ alias ls="ls --color=auto"
 alias ll="ls -l"
 alias topp="top -u $user"
 
+export COLORTERM=truecolor
+
 ###########
 # History #
 ###########

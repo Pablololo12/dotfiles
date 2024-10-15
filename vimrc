@@ -10,7 +10,7 @@ set smartindent
 set encoding=utf-8
 set t_Co=256
 "set background=dark
-"set background=light
+set background=light
 set hlsearch
 set colorcolumn=120
 set tabstop=4
@@ -83,7 +83,7 @@ set statusline+=\ 										"Blank space at the end
 
 hi User1 ctermbg=Blue
 hi User2 ctermbg=Green ctermfg=Black "White "Black
-hi User3 ctermbg=Black "White "Black
+hi User3 ctermbg=White "White "Black
 hi User4 ctermbg=Magenta ctermfg=Black "White "Black
 
 au BufNewFile,BufRead *.py,*.hs
