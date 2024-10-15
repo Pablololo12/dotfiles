@@ -1,6 +1,10 @@
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
+;; TODO Ideally I would like to not have this here but mac doesn't make it easy
 (setenv "LIBRARY_PATH" "/opt/homebrew/opt/gcc/lib/gcc/13:/opt/homebrew/opt/libgccjit/lib/gcc/13:/opt/homebrew/opt/gcc/lib/gcc/13/gcc/aarch64-apple-darwin23/13")
+(setenv "PATH" (concat (getenv "PATH") ":/opt/homebrew/bin:/usr/local/bin"))
+(add-to-list 'exec-path "/usr/local/bin/")
+(add-to-list 'exec-path "/opt/homebrew/bin/")
 
 ;; Improve openning times by allowing the garbage collector to run less often
 (setq prev-gc-cons-threshold gc-cons-threshold)
@@ -27,16 +31,11 @@
 (setq inhibit-splash-screen t ;; no thanks
         use-file-dialog nil) ;; don't use system file dialog
 
-(setenv "PATH" (concat (getenv "PATH") ":/opt/homebrew/bin:/usr/local/bin"))
-(add-to-list 'exec-path "/usr/local/bin/")
-(add-to-list 'exec-path "/opt/homebrew/bin/")
-
 (require 'init-elpa)
 (require 'init-edit)
 (require 'init-others)
 (require 'init-ui)
 (require 'init-org)
-(require 'init-cppref)
 
 (provide 'init)
 (custom-set-variables

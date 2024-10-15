@@ -3,7 +3,6 @@
 (require 'init-modeline)
 
 (prefer-coding-system 'utf-8)
-;;(set-face-attribute 'default nil :font "Zed Mono" :height 140 :width 'semi-expanded)
 (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 130 :width 'semi-expanded)
 
 ;; tab-bar

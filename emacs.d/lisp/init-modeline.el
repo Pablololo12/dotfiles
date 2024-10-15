@@ -1,13 +1,5 @@
 (require 'init-elpa)
 
-;;(setq dark1 "SkyBlue3")
-;;(setq dark2 "light steel blue")
-;;(setq dark3 "gray81")
-;;(setq lineback "gray32")
-;;(setq mode-normal "deep sky blue")
-;;(setq mode-insert "SeaGreen1")
-;;(setq mode-visual "sienna1")
-
 (setq dark1 "snow1")
 (setq dark2 "snow3")
 (setq dark3 "snow4")
