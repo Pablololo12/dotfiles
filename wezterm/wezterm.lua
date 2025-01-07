@@ -11,7 +11,10 @@ if wezterm.config_builder then
 end
 
 -- This is where you actually apply your config choices
-config.font = wezterm.font('Hack Nerd Font', {weight = 'Bold'})
+--config.font = wezterm.font('Hack Nerd Font', {weight = 'Bold'})
+--config.font = wezterm.font('3270 Nerd Font Mono', {weight='Bold'})
+config.font = wezterm.font('DepartureMono Nerd Font Mono')
+config.font_size = 14.0
 
 config.use_fancy_tab_bar = False
 config.enable_tab_bar = False
@@ -30,9 +33,9 @@ end
 
 function scheme_for_appearance(appearance)
   if appearance:find 'Dark' then
-    return 'Catppuccin Frappe'
+    return 'Belafonte Night'
   else
-    return 'Catppuccin Latte'
+    return 'Belafonte Day'
   end
 end
 
