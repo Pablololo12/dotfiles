@@ -28,8 +28,6 @@
 (when menu-bar-mode
   (menu-bar-mode -1))
 
-(setq inhibit-splash-screen t ;; no thanks
-        use-file-dialog nil) ;; don't use system file dialog
 ;; Ask y/n instead of yes/no
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -43,9 +41,16 @@
 (defalias 'view-emacs-news 'ignore)
 (defalias 'describe-gnu-project 'ignore)
 
+(when (eq system-type 'darwin)
+  (setenv "PATH" (concat "/opt/homebrew/bin:" (getenv "PATH"))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General Packages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(package-initialize)
 
 ;; Fuzzy search
 (use-package ivy
@@ -56,6 +61,16 @@
     (ivy-count-format "(%d/%d) ")
     (ivy-use-virtual-buffers t)
   :config (ivy-mode))
+
+(use-package counsel
+  :after ivy
+  :ensure t
+  :bind
+  (("M-x" . counsel-M-x)
+   ("C-c g" . counsel-git-grep)
+   ("C-c j" . counsel-ag)
+   ("C-c f" . counsel-describe-function))
+  :config (counsel-mode))
 
 ;; projectile
 (use-package projectile
@@ -77,21 +92,28 @@
   :config
     (evil-mode 1))
 
-;; Magit
-(use-package magit
-  :ensure t
-  :custom
-  (magit-display-buffer-function (lambda (buffer) (display-buffer buffer '(display-buffer-same-window)))))
+;; Vterm
+(use-package vterm
+    :ensure t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Language specific config and packages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Company autocomplete
+(use-package company
+  :ensure t
+  :defer t
+  :config
+  (global-company-mode))
 
 ;; Set 4 spaces
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 4)
 (setq c-set-style "k&r")
 (setq c-basic-offset 4)
+;; Autoclose brackets
+(electric-pair-mode t)
 
 ;; C++ options
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
@@ -99,6 +121,7 @@
 
 ;; Haskell
 (use-package haskell-mode
+  :defer t
   :ensure t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -129,7 +152,61 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (prefer-coding-system 'utf-8)
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 130 :width 'semi-expanded)
+(set-face-font 'default "Fira Code 14")
+(setq default-frame-alist
+      (append (list '(width  . 72) '(height . 40)
+                    '(vertical-scroll-bars . nil)
+                    '(internal-border-width . 24)
+                    '(font . "Fira Code 14"))))
+(set-frame-parameter (selected-frame)
+                     'internal-border-width 24)
+(global-prettify-symbols-mode +1)
+(let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
+               (35 . ".\\(?:###\\|##\\|_(\\|[#(?[_{]\\)")
+               (36 . ".\\(?:>\\)")
+               (37 . ".\\(?:\\(?:%%\\)\\|%\\)")
+               (38 . ".\\(?:\\(?:&&\\)\\|&\\)")
+               (42 . ".\\(?:\\(?:\\*\\*/\\)\\|\\(?:\\*[*/]\\)\\|[*/>]\\)")
+               (43 . ".\\(?:\\(?:\\+\\+\\)\\|[+>]\\)")
+               (45 . ".\\(?:\\(?:-[>-]\\|<<\\|>>\\)\\|[<>}~-]\\)")
+               (46 . ".\\(?:\\(?:\\.[.<]\\)\\|[.=-]\\)")
+               (47 . ".\\(?:\\(?:\\*\\*\\|//\\|==\\)\\|[*/=>]\\)")
+               (48 . ".\\(?:x[a-zA-Z]\\)")
+               (58 . ".\\(?:::\\|[:=]\\)")
+               (59 . ".\\(?:;;\\|;\\)")
+               (60 . ".\\(?:\\(?:!--\\)\\|\\(?:~~\\|->\\|\\$>\\|\\*>\\|\\+>\\|--\\|<[<=-]\\|=[<=>]\\||>\\)\\|[*$+~/<=>|-]\\)")
+               (61 . ".\\(?:\\(?:/=\\|:=\\|<<\\|=[=>]\\|>>\\)\\|[<=>~]\\)")
+               (62 . ".\\(?:\\(?:=>\\|>[=>-]\\)\\|[=>-]\\)")
+               (63 . ".\\(?:\\(\\?\\?\\)\\|[:=?]\\)")
+               (91 . ".\\(?:]\\)")
+               (92 . ".\\(?:\\(?:\\\\\\\\\\)\\|\\\\\\)")
+               (94 . ".\\(?:=\\)")
+               (119 . ".\\(?:ww\\)")
+               (123 . ".\\(?:-\\)")
+               (124 . ".\\(?:\\(?:|[=|]\\)\\|[=>|]\\)")
+               (126 . ".\\(?:~>\\|~~\\|[>=@~-]\\)")
+               )
+             ))
+  (dolist (char-regexp alist)
+    (set-char-table-range composition-function-table (car char-regexp)
+                          `([,(cdr char-regexp) 0 font-shape-gstring]))))
+
+;; Line spacing, can be 0 for code and 1 or 2 for text
+(setq-default line-spacing 0)
+
+;; Underline line at descent position, not baseline position
+(setq x-underline-at-descent-line t)
+
+;; No ugly button for checkboxes
+(setq widget-image-enable nil)
+
+;; Line cursor and no blink
+(set-default 'cursor-type  '(bar . 1))
+(blink-cursor-mode 0)
+
+;; No sound
+(setq visible-bell t)
+(setq ring-bell-function 'ignore)
 
 ;; tab-bar
 (setq-default tab-bar-new-button-show nil ;; don't show new tab button
@@ -156,7 +233,7 @@
 ;; Relative numbers
 ;; Set the line numbers type to relative
 (setq display-line-numbers-type 'relative)
-
+(global-hl-line-mode)
 (global-display-line-numbers-mode 'relative)
 
 ;; Show trailing white space
@@ -166,7 +243,7 @@
 (use-package ef-themes
   :ensure t
   :config
-  (ef-themes-select 'ef-dream))
+  (ef-themes-select 'ef-owl))
 
 (add-to-list 'display-buffer-alist
             '("\\*xref\\*"
@@ -195,150 +272,61 @@
 ;;; MODELINE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(setq dark1 "snow1")
-(setq dark2 "snow3")
-(setq dark3 "snow4")
-(setq lineback "gray32")
-(setq mode-normal "deep sky blue")
-(setq mode-insert "SeaGreen1")
-(setq mode-visual "sienna1")
+(defun active-buffer-icon ()
+  "Returns active icon based on the buffer type"
+(let* ((extension (file-name-extension (or (buffer-file-name) ""))))
+    (cond
+      ((string-equal (buffer-name) "*vterm*") (propertize " ≥ " 'face '(:background "black" :foreground "white" :height 220)))
+     ((string-equal extension "cpp") (propertize " ☲ " 'face '(:background "NavajoWhite2" :foreground "black" :height 220)))
+     ((string-equal extension "h") (propertize " ∴ " 'face '(:background "SeaGreen1" :foreground "black" :height 220)))
+     (t (propertize " ☰ " 'face '(:background "HotPink2" :foreground "black" :height 220))))))
 
-(defface mode-line-modified-face
-  `((t (:foreground "red" :background ,dark1)))
-  "Face for the modified buffer indicator in the mode-line.")
+(defun inactive-buffer-icon ()
+  "Returns active icon based on the buffer type"
+(let* ((extension (file-name-extension (or (buffer-file-name) ""))))
+    (cond
+      ((string-equal (buffer-name) "*vterm*") (propertize " ≥ " 'face '(:background "gray" :foreground "black" :height 220)))
+     ((string-equal extension "cpp") (propertize " ☲ " 'face '(:background "gray" :foreground "white" :height 220)))
+     ((string-equal extension "h") (propertize " ∴ " 'face '(:background "SeaGreen1" :foreground "white" :height 220)))
+     (t (propertize " ☰ " 'face '(:background "gray" :foreground "white" :height 220))))))
 
-(defface mode-line-unmodified-face
-  `((t (:foreground "green" :background ,dark1)))
-  "Face for the unmodified buffer indicator in the mode-line.")
+(defun buffer-icon ()
+  (cond
+    ((current-buffer) (active-buffer-icon))
+    (t (inactive-buffer-icon))))
 
-(defface mode-line-filename-face
-  `((t (:foreground "black" :background ,dark1 :weight bold)))
-  "Face for the filename in the mode-line.")
+(defun ml-fill-to-right (reserve face)
+  "Return empty space, leaving RESERVE space on the right."
+  (propertize " "
+              'display `((space :align-to (- (+ right right-fringe right-margin)
+                                             ,reserve)))
+              'face face))
 
-(defface mode-line-position-face
-  `((t (:foreground "black" :background ,dark2 :weight bold)))
-  "Face for the line position")
+(defun ml-render (left right &optional fill-face)
+  (concat left
+          (ml-fill-to-right (string-width (format-mode-line right)) fill-face)
+          right))
 
-(defface mode-line-host-face
-  `((t (:foreground "black" :background ,dark3 :weight bold)))
-  "Face for the line position")
+(defun ml-left ()
+  (concat
+          (eval (buffer-icon))
+          " "
+          (format "%s" (buffer-name))))
 
-(defface mode-line-background-face
-  `((t (:foreground "white" :background ,lineback :weight bold)))
-  "Face for the line position")
+(defun ml-right ()
+  (concat
+    (format "%04d" (line-number-at-pos))
+    ":"
+    (format "%03d" (current-column))
+    " "))
 
-(defface mode-line-project-face
-  `((t (:foreground "black" :background ,dark2 :weight bold)))
-  "Face for the line position")
+(setq-default header-line-format
+  `((:eval (ml-render (ml-left) (ml-right)))))
 
-(defface evil-normal-state-tag-face
-  `((t (:background ,mode-normal :foreground "black" :weight bold)))
-  "Face for Evil Normal state tag in mode line.")
-
-(defface evil-insert-state-tag-face
-  `((t (:background ,mode-insert :foreground "black" :weight bold)))
-  "Face for Evil Insert state tag in mode line.")
-
-(defface evil-visual-state-tag-face
-  `((t (:background ,mode-visual :foreground "black" :weight bold)))
-  "Face for Evil Visual state tag in mode line.")
-
-(defface mode-normal-word-separator
-  `((t (:foreground ,mode-normal :background ,dark1)))
-  "Normal separator")
-
-(defface mode-insert-word-separator
-  `((t (:foreground ,mode-insert :background ,dark1)))
-  "Normal separator")
-
-(defface mode-visual-word-separator
-  `((t (:foreground ,mode-visual :background ,dark1)))
-  "Normal separator")
-
-(defface file-position-separator
-  `((t (:foreground ,dark1 :background ,dark2)))
-  "separator")
-
-(defface position-host-separator
-  `((t (:foreground ,dark2 :background ,dark3)))
-  "separator")
-
-(defface host-bar-separator
-  `((t (:foreground ,dark3 :background ,lineback)))
-  "separator")
-
-(defface position-bar-separator
-  `((t (:foreground ,dark2 :background ,lineback)))
-  "separator")
-
-(defface bar-project-separator
-  `((t (:foreground ,dark2 :background ,lineback)))
-  "separator")
-
-(defface project-size-separator
-  `((t (:foreground ,dark1 :background ,dark2)))
-  "separator")
-
-(setq mode-line-right-align-edge 'window)
-;; Custom faces for mode-line
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(mode-line ((t (:background nil :overline nil :box nil))))
- '(mode-line-active ((t (:background "gray32" :overline nil :box nil))))
- '(mode-line-inactive ((t (:background nil :overline nil :box nil)))))
-
-(setq-default mode-line-format
-  (list
-    '(:eval (cond
-       (( eq evil-state 'visual) (list (propertize " Visual " 'face 'evil-visual-state-tag-face) (propertize " " 'face 'mode-visual-word-separator)))
-       (( eq evil-state 'normal) (list (propertize " Normal " 'face 'evil-normal-state-tag-face) (propertize " " 'face 'mode-normal-word-separator)))
-       (( eq evil-state 'insert) (list (propertize " Insert " 'face 'evil-insert-state-tag-face) (propertize " " 'face 'mode-insert-word-separator)))
-       (t (list (propertize " ● " 'face 'evil-visual-state-tag-face) (propertize " " 'face 'mode-visual-word-separator)))))
-
-   '(:eval (propertize "%b "
-                       'face 'mode-line-filename-face
-                       'help-echo (buffer-file-name)))
-
-   '(:eval (propertize " ● "
-                       'face (if (buffer-modified-p)
-                                 'mode-line-modified-face
-                               'mode-line-unmodified-face)))
-   (propertize " " 'face 'file-position-separator)
-
-   '(:eval (propertize "(%02l,%02c) " 'face 'mode-line-position-face))
-
-   '(:eval (let ((remote (file-remote-p default-directory 'host)))
-             (cond
-              ((null remote) (propertize "" 'face 'position-bar-separator))
-              (t (list (propertize " " 'face 'position-host-separator)(propertize remote 'face 'mode-line-host-face) (propertize "" 'face 'host-bar-separator))))))
-
-   'mode-line-format-right-align
-   ;; the current major mode
-   (propertize " %m " 'face 'mode-line-background-face)
-
-   '(:eval (if vc-mode
-               (propertize
-                (let* ((noback (replace-regexp-in-string (format "^ %s" (vc-backend buffer-file-name)) " " vc-mode))
-                       (face (cond ((string-match "^ -" noback) 'mode-line-vc)
-                                   ((string-match "^ [:@]" noback) 'mode-line-vc-edit)
-                                   ((string-match "^ [!\\?]" noback) 'mode-line-vc-modified))))
-                  (format " %s" (substring noback 2)))
-                'face 'mode-line-background-face)))
-
-   (propertize " " 'face 'bar-project-separator)
-   '(:eval (let ((name (project-current)))
-             (cond
-              ((null name) (propertize "No Project" 'face mode-line-position-face))
-              (t (propertize (project-name name)
-                             'face 'mode-line-position-face)))))
-   (propertize " " 'face 'project-size-separator)
-   ;; relative position, size of file
-   (propertize " [%I] " 'face 'mode-line-filename-face) ;; size
-   ))
-
+(setq-default window-divider-default-bottom-width 3)
+(setq-default window-divider-default-places 'bottom-only)
+(window-divider-mode 1)
+(setq-default mode-line-format nil)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -346,3 +334,9 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages nil))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
