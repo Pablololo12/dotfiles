@@ -42,6 +42,15 @@ _BOLD='\[\033[1m\]'
 
 PS1="${_CYAN}\$(hostnameS)${_RED}:${_GREEN}\W${_MAGENTA}\$(git_branch_cmd)${_RESET} "
 
+t() {
+    env TERM=screen-256color tmux -u a
+    if [ $? -ne 0 ]; then
+      env TERM=screen-256color tmux -u
+    fi
+}
++
++export TERM=xterm-256color
+
 # For work related configs
 
 if [ -f ~/.bashrc_secrets ]; then
