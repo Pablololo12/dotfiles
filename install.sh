@@ -6,7 +6,7 @@ link() {
     fi
 }
 
-link() {
+link_config() {
     mkdir -p ~/.config
     if ! [ -e ~/.$1 ]; then
         ln -s `pwd`/$1 ~/.config/.$1
@@ -17,8 +17,8 @@ link "bashrc"
 link "vimrc"
 link "cshrc"
 link "screenrc"
-link "tmux"
 link "emacs.d"
+link_config "tmux"
 link_config "nvim"
 link_config "wezterm"
 link_config "zellij"

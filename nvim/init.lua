@@ -4,8 +4,6 @@ local set = vim.opt
 set.number=true
 set.relativenumber=true
 set.encoding="utf-8"
---set.bg="dark"
-set.colorcolumn="120"
 -- Search settings
 set.hlsearch=true
 set.incsearch=true
@@ -18,7 +16,6 @@ set.expandtab=true
 set.list=true
 -- Settings for completion
 set.wildmenu=true
---set.wildoptions="fuzzy"
 set.wildmode="list:longest,full"
 set.completeopt="longest,menuone"
 -- Change how we split window
@@ -50,6 +47,7 @@ bind.set('n', '<C-d>', '<C-d>zz')
 bind.set('n', '<C-u>', '<C-u>zz')
 
 bind.set('n', '<leader>o', ':OpenOtherFile<CR>')
+bind.set('n', '<leader>O', ':OpenOtherFileInPlace<CR>')
 
 local builtin = require('telescope.builtin')
 require("telescope").load_extension "file_browser"
@@ -67,6 +65,24 @@ vim.api.nvim_create_user_command(
     vim.cmd('Termdebug()')
   end,
   {}
+)
+
+vim.api.nvim_create_user_command(
+    'OpenOtherFileInPlace',
+    function()
+        local current_file = vim.api.nvim_eval('expand("%:p")')
+        local path, filename, extension = string.match(current_file, "(.-)([^\\/]-)([^\\/%.]+)$")
+        otherFile = path .. filename
+        if extension == "cpp" then
+            otherFile = otherFile .. "h"
+        elseif extension == "h" then
+            otherFile = otherFile .. "cpp"
+        else
+            return
+        end
+        vim.cmd(":e " .. otherFile)
+    end,
+    {}
 )
 
 vim.api.nvim_create_user_command(
@@ -104,16 +120,24 @@ vim.api.nvim_create_autocmd('filetype', {
 -- Status line
 require('lualine').setup{
     options = {
-        theme = 'modus-vivendi',
+        theme = 'onelight',
+        section_separators = '',
+        component_separators = '',
     }
+}
+
+require("auto-dark-mode").setup {
 }
 
 require("catppuccin").setup {
     background = {
         light = "latte",
         dark = "frappe"
+    },
+    flavour = "auto",
+    integrations = {
+        telescope = true,
     }
 }
 
-vim.cmd.colorscheme "catppuccin-frappe"
-vim.o.background = "dark"
+vim.cmd.colorscheme("catppuccin")

@@ -45,6 +45,16 @@
   (setenv "PATH" (concat "/opt/homebrew/bin:" (getenv "PATH"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Functions for hooks
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun my/change-tab-name ()
+  "Rename the current tab to the name of the Projectile project."
+  (when (projectile-project-p)
+    (let ((project-name (projectile-project-name)))
+      (tab-bar-rename-tab project-name))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General Packages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -77,6 +87,8 @@
   :ensure t
   :bind
     (("M-p" . 'projectile-command-map))
+  :hook
+    (projectile-after-switch-project-hook . my/change-tab-name)
   :custom
     (projectile-globally-ignored-directories '("build"))
   :config
@@ -90,7 +102,8 @@
     (evil-want-C-i-jump nil)
     (evil-search-module 'evil-search)
   :config
-    (evil-mode 1))
+    (evil-mode 1)
+    (evil-set-initial-state 'vterm-mode 'emacs))
 
 ;; Vterm
 (use-package vterm
@@ -124,28 +137,51 @@
   :defer t
   :ensure t)
 
+;; Lua
+(use-package lua-mode
+  :defer t
+  :ensure t)
+
+;; json
+(use-package json-mode
+  :defer t
+  :ensure t)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General Config
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Tramp config
+;;;; Tramp config
 (setq vc-handled-backends '(Git))
 (setq tramp-verbose 1)
 (setq auto-revert-remote-files nil)
 (setq tramp-use-ssh-controlmaster-options nil)
 (setq tramp-auto-save-directory "/tmp")
 ;; Personal settings
-;; Auto reload buffers on file change
+;;;; Auto reload buffers on file change
 (global-auto-revert-mode t)
 
-;; Imenu to jump to functions in code
+;;;; Imenu to jump to functions in code
 (setq-default imenu-auto-rescan t)
 (setq-default imenu-auto-rescan-maxout 1200000)
 (global-set-key (kbd "M-i") 'imenu)
 
-;; Open other file in split window
+;;;; Open other file in split window
 (global-set-key (kbd "M-o") 'ff-find-other-file-other-window)
 (global-set-key (kbd "M-O") 'ff-find-other-file)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Terminal popup Config
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package toggle-term
+  :ensure t
+  :bind (("C-c t f" . toggle-term-find)
+         ("s-j" . toggle-term-vterm)
+         ("C-c t o" . toggle-term-toggle))
+  :config
+    (setq toggle-term-size 30)
+    (setq toggle-term-switch-upon-toggle t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; UI
@@ -160,6 +196,7 @@
                     '(font . "Fira Code 14"))))
 (set-frame-parameter (selected-frame)
                      'internal-border-width 24)
+
 (global-prettify-symbols-mode +1)
 (let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
                (35 . ".\\(?:###\\|##\\|_(\\|[#(?[_{]\\)")
@@ -211,7 +248,7 @@
 ;; tab-bar
 (setq-default tab-bar-new-button-show nil ;; don't show new tab button
         tab-bar-close-button-show nil ;; don't show tab close button
-        tab-bar-new-tab-choice "*scratch*"
+        tab-bar-new-tab-choice "*dashboard*"
         tab-line-close-button-show nil) ;; don't show tab close button
 
 ;; Change width threshold for splitting vertically
@@ -239,12 +276,6 @@
 ;; Show trailing white space
 (setq-default show-trailing-whitespace t)
 
-;; Theme
-(use-package ef-themes
-  :ensure t
-  :config
-  (ef-themes-select 'ef-owl))
-
 (add-to-list 'display-buffer-alist
             '("\\*xref\\*"
                 (display-buffer-in-side-window)
@@ -269,6 +300,12 @@
 (add-hook 'kill-buffer-hook 'my-close-window-on-kill)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Themes
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(load-theme 'modus-operandi :no-confirm)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; MODELINE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -276,7 +313,7 @@
   "Returns active icon based on the buffer type"
 (let* ((extension (file-name-extension (or (buffer-file-name) ""))))
     (cond
-      ((string-equal (buffer-name) "*vterm*") (propertize " ≥ " 'face '(:background "black" :foreground "white" :height 220)))
+      ((string-match-p (regexp-quote "*toggle-term-vterm*") (buffer-name)) (propertize " ≥ " 'face '(:background "black" :foreground "white" :height 220)))
      ((string-equal extension "cpp") (propertize " ☲ " 'face '(:background "NavajoWhite2" :foreground "black" :height 220)))
      ((string-equal extension "h") (propertize " ∴ " 'face '(:background "SeaGreen1" :foreground "black" :height 220)))
      (t (propertize " ☰ " 'face '(:background "HotPink2" :foreground "black" :height 220))))))
@@ -285,15 +322,15 @@
   "Returns active icon based on the buffer type"
 (let* ((extension (file-name-extension (or (buffer-file-name) ""))))
     (cond
-      ((string-equal (buffer-name) "*vterm*") (propertize " ≥ " 'face '(:background "gray" :foreground "black" :height 220)))
+      ((string-match-p (regexp-quote "*toggle-term-vterm*") (buffer-name)) (propertize " ≥ " 'face '(:background "black" :foreground "white" :height 220)))
      ((string-equal extension "cpp") (propertize " ☲ " 'face '(:background "gray" :foreground "white" :height 220)))
-     ((string-equal extension "h") (propertize " ∴ " 'face '(:background "SeaGreen1" :foreground "white" :height 220)))
+     ((string-equal extension "h") (propertize " ∴ " 'face '(:background "gray" :foreground "white" :height 220)))
      (t (propertize " ☰ " 'face '(:background "gray" :foreground "white" :height 220))))))
 
 (defun buffer-icon ()
-  (cond
-    ((current-buffer) (active-buffer-icon))
-    (t (inactive-buffer-icon))))
+  (if (eq (current-buffer) (window-buffer))
+      (active-buffer-icon)
+    (inactive-buffer-icon)))
 
 (defun ml-fill-to-right (reserve face)
   "Return empty space, leaving RESERVE space on the right."
@@ -315,25 +352,54 @@
 
 (defun ml-right ()
   (concat
-    (format "%04d" (line-number-at-pos))
+    (format "%d" (line-number-at-pos))
     ":"
-    (format "%03d" (current-column))
+    (format "%d" (current-column))
     " "))
 
 (setq-default header-line-format
   `((:eval (ml-render (ml-left) (ml-right)))))
+
+(defun update-header-line ()
+  "Update the header-line to reflect the current state."
+  (force-mode-line-update t))
+(add-hook 'post-command-hook 'update-header-line)
 
 (setq-default window-divider-default-bottom-width 3)
 (setq-default window-divider-default-places 'bottom-only)
 (window-divider-mode 1)
 (setq-default mode-line-format nil)
 
+;; Set the header line face to match the background color
+(set-face-attribute 'header-line nil
+                    :background (face-attribute 'default :background)
+                    :foreground (face-attribute 'default :foreground)
+                    :box nil)
+
+;; Set the color for the line numbers
+(set-face-attribute 'line-number nil
+                    :foreground (face-attribute 'default :foreground)
+                    :background (face-attribute 'default :background))
+
+(set-face-attribute 'fringe nil
+                    :foreground (face-attribute 'default :foreground)
+                    :background (face-attribute 'default :background))
+
+(set-face-attribute 'mode-line nil
+                    :box nil)
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages nil))
+ '(custom-safe-themes
+   '("98b4ef49c451350c28a8c20c35c4d2def5d0b8e5abbc962da498c423598a1cdd"
+     default))
+ '(package-selected-packages
+   '(company counsel ef-themes ein evil haskell-mode json-mode lua-mode
+             magit nano-modeline nord-theme projectile toggle-term
+             vterm)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
