@@ -127,6 +127,7 @@ require('lualine').setup{
 }
 
 require("auto-dark-mode").setup {
+    fallback = "light"
 }
 
 require("catppuccin").setup {
