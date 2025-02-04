@@ -48,8 +48,8 @@ t() {
       env TERM=screen-256color tmux -u
     fi
 }
-+
-+export TERM=xterm-256color
+
+export TERM=xterm-256color
 
 # For work related configs
 
