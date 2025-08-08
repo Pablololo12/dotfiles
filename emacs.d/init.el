@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t; -*-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Pabs emacs config
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -5,6 +6,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Start config and general appeareance
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(when (eq system-type 'darwin)
+  (setenv "PATH" (concat "/opt/homebrew/bin:/opt/homebrew/sbin:" (getenv "PATH")))
+    (setq exec-path (split-string (getenv "PATH") path-separator)))
 
 ;; Improve openning times by allowing the garbage collector to run less often
 (setq prev-gc-cons-threshold gc-cons-threshold)
@@ -40,9 +45,6 @@
 ;; Not show emacs news
 (defalias 'view-emacs-news 'ignore)
 (defalias 'describe-gnu-project 'ignore)
-
-(when (eq system-type 'darwin)
-  (setenv "PATH" (concat "/opt/homebrew/bin:" (getenv "PATH"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Functions for hooks
@@ -87,10 +89,12 @@
   :ensure t
   :bind
     (("M-p" . 'projectile-command-map))
-  :hook
-    (projectile-after-switch-project-hook . my/change-tab-name)
   :custom
     (projectile-globally-ignored-directories '("build"))
+    (projectile-switch-project-action
+     (lambda ()
+       (my/change-tab-name)
+       (projectile-dired)))
   :config
     (projectile-mode +1))
 
@@ -104,6 +108,9 @@
   :config
     (evil-mode 1)
     (evil-set-initial-state 'vterm-mode 'emacs))
+
+(setq evil-ex-search-highlight-all t)
+(setq lazy-highlight-cleanup nil)
 
 ;; Vterm
 (use-package vterm
@@ -132,6 +139,25 @@
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 (add-to-list 'auto-mode-alist '("\\.cppm\\'" . c++-mode))
 
+;;(use-package lsp-mode
+;;  :ensure t
+;;  :defer t
+;;  :hook
+;;    ((c-mode . lsp)
+;;    (c++-mode . lsp))
+;;  :init
+;;  (setq lsp-ui-doc-enable nil)
+;;  (setq lsp-ui-sideline-enable nil)
+;;  (setq lsp-headerline-breadcrumb-enable nil
+;;        lsp-keymap-prefix "C-c l")
+;;  (with-eval-after-load 'lsp-mode
+;;    (define-key lsp-mode-map (kbd "C-x t 2") nil)
+;;    (define-key lsp-mode-map (kbd "M-p") nil)
+;;    (define-key lsp-mode-map (kbd "<mouse-1>") nil)
+;;    (define-key lsp-mode-map (kbd "<mouse-2>") nil)
+;;    (define-key lsp-mode-map (kbd "<mouse-3>") nil)
+;;    (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)))
+
 ;; Haskell
 (use-package haskell-mode
   :defer t
@@ -144,6 +170,23 @@
 
 ;; json
 (use-package json-mode
+  :defer t
+  :ensure t)
+
+;; clojure
+(use-package clojure-mode
+  :defer t
+  :ensure t)
+
+(use-package package-lint
+  :defer t
+  :ensure t)
+
+(use-package rust-mode
+  :defer t
+  :ensure t)
+
+(use-package cargo
   :defer t
   :ensure t)
 
@@ -174,28 +217,87 @@
 ;;; Terminal popup Config
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-package toggle-term
-  :ensure t
-  :bind (("C-c t f" . toggle-term-find)
-         ("s-j" . toggle-term-vterm)
-         ("C-c t o" . toggle-term-toggle))
-  :config
-    (setq toggle-term-size 30)
-    (setq toggle-term-switch-upon-toggle t))
+(use-package term-control
+  :load-path "~/utils/term-control.el/"
+  :custom
+    (term-control-vsize 33)
+    (term-control-hsize 33)
+  :bind
+    (("s-h" . term-control-switch-to-term)
+    ("s-j" . term-control-toggle)
+    ("s-H" . term-control-switch-to-term-ver)
+    ("s-J" . term-control-toggle-ver)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Dashboard
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(require 'widget)
+(defun my/startup-projects-dashboard ()
+  "Display an interactive list of recent projects on startup."
+  (let ((buf (generate-new-buffer "*Start Page*")))
+    (with-current-buffer buf
+      ;; Prepare buffer for widgets
+      (erase-buffer)
+      (remove-overlays)
+      (projectile-mode 1)
+      (unless projectile-known-projects
+        (projectile-load-known-projects))
+      (widget-insert "📁 **Recent Projects:**\n")
+      (widget-insert "========================\n\n")
+      ;; Create a button for each project (limit to 5 recent ones)
+      (if (and projectile-known-projects (> (length projectile-known-projects) 0))
+          (dolist (proj (cl-subseq projectile-known-projects 
+                                   0 (min 10 (length projectile-known-projects))))
+            (let ((proj-name (file-name-nondirectory (directory-file-name proj))))
+              (widget-create 'push-button
+                             :tag proj-name             ; Displayed name
+                             :value proj                ; Store full path
+                             :notify (lambda (widget &rest _ignore)
+                                       ;; Action: Open the project
+                                       (let ((proj-path (widget-value widget)))
+                                         (let ((default-directory proj-path))
+                                           (funcall projectile-switch-project-action)))))
+              (widget-insert "\n")))
+        (widget-insert "No recent projects found.\n"))
+      (widget-insert "\n\n")
+      (when (display-graphic-p)
+        (let ((img (create-image (concat data-directory "images/splash.svg")
+                                 'png nil :ascent 'center)))
+          (when img
+            (insert-image img)
+            (insert "\n\n"))))
+
+      ;; ASCII Logo for Terminal Users
+      (unless (display-graphic-p)
+        (Widget-insert "EMACS\n\n\n"))
+
+      ;; Finalize widget setup
+      (use-local-map widget-keymap)            ; use widget keymap for Tab/RET behavior
+      (widget-setup)
+      (goto-char (point-min)))
+    buf))  ; return the buffer
+
+;; Use the custom dashboard at startup (if no file is opened)
+(setq inhibit-startup-screen t
+      initial-buffer-choice #'my/startup-projects-dashboard)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; UI
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (prefer-coding-system 'utf-8)
-(set-face-font 'default "Fira Code 14")
+(set-face-font 'default "FiraCode Nerd Font Mono Light 14")
 (setq default-frame-alist
       (append (list '(width  . 72) '(height . 40)
                     '(vertical-scroll-bars . nil)
                     '(internal-border-width . 24)
-                    '(font . "Fira Code 14"))))
+                    ;;'(undecorated-round . t)
+                    '(font . "FiraCode Nerd Font Mono Light 14"))))
 (set-frame-parameter (selected-frame)
                      'internal-border-width 24)
+
+(setq ns-use-srgb-colorspace nil)
 
 (global-prettify-symbols-mode +1)
 (let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
@@ -246,10 +348,20 @@
 (setq ring-bell-function 'ignore)
 
 ;; tab-bar
+(require 'tab-bar)       ; load the tab-bar feature immediately
+(tab-bar-mode 1)      ; enable the C-x t prefix at once
 (setq-default tab-bar-new-button-show nil ;; don't show new tab button
         tab-bar-close-button-show nil ;; don't show tab close button
-        tab-bar-new-tab-choice "*dashboard*"
+        tab-bar-new-tab-choice #'my/startup-projects-dashboard
         tab-line-close-button-show nil) ;; don't show tab close button
+
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(tab-bar-tab ((t (:background "blue" :foreground "#ffffff" :box t)))))
+ ;; active tab
 
 ;; Change width threshold for splitting vertically
 (setq-default split-width-threshold 125)
@@ -303,7 +415,33 @@
 ;;; Themes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(load-theme 'modus-operandi :no-confirm)
+;;(load-theme 'modus-operandi :no-confirm)
+(use-package catppuccin-theme
+  :ensure t
+  :init
+  ;; Load the Catppuccin theme (without prompt). 
+  ;; This will apply the default flavor (Mocha) initially.
+  (setq catppuccin-flavor 'frappe)
+  (load-theme 'catppuccin :no-confirm))
+
+(use-package auto-dark
+  :ensure t
+  :custom
+  ;; Tell auto-dark to use Catppuccin for both dark and light modes
+  (auto-dark-themes '((catppuccin) (catppuccin)))
+  :config
+  ;; When OS switches to dark mode:
+  (add-hook 'auto-dark-dark-mode-hook
+            (lambda ()
+              (setq catppuccin-flavor 'frappe)   ;; use Mocha (dark variant)
+              (catppuccin-reload)))
+  ;; When OS switches to light mode:
+  (add-hook 'auto-dark-light-mode-hook
+            (lambda ()
+              (setq catppuccin-flavor 'latte)   ;; use Latte (light variant)
+              (catppuccin-reload)))
+  ;; Start auto-dark-mode to begin monitoring system appearance
+  (auto-dark-mode t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; MODELINE
@@ -396,13 +534,5 @@
  '(custom-safe-themes
    '("98b4ef49c451350c28a8c20c35c4d2def5d0b8e5abbc962da498c423598a1cdd"
      default))
- '(package-selected-packages
-   '(company counsel ef-themes ein evil haskell-mode json-mode lua-mode
-             magit nano-modeline nord-theme projectile toggle-term
-             vterm)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+ '(package-selected-packages nil))
+

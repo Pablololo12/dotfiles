@@ -19,6 +19,9 @@ shopt -s histappend
 bind '"\C-p": history-search-backward'
 bind '"\C-n": history-search-forward'
 
+export GIT_PAGER=less
+export LESS="-RF"
+
 ##########
 # Prompt #
 ##########

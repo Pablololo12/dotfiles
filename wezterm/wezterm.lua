@@ -11,16 +11,14 @@ if wezterm.config_builder then
 end
 
 -- This is where you actually apply your config choices
---config.font = wezterm.font('Hack Nerd Font', {weight = 'Bold'})
---config.font = wezterm.font('3270 Nerd Font Mono', {weight='Bold'})
-config.font = wezterm.font('DepartureMono Nerd Font Mono')
+config.font = wezterm.font('Fira Code', {weight='Light'})
+--config.font = wezterm.font('DepartureMono Nerd Font Mono')
 config.font_size = 14.0
 
-config.use_fancy_tab_bar = False
-config.enable_tab_bar = False
-
-
+config.use_fancy_tab_bar = true
+config.enable_tab_bar = true
 config.hide_tab_bar_if_only_one_tab = true
+config.window_decorations = "RESIZE"
 
 -- wezterm.gui is not available to the mux server, so take care to
 -- do something reasonable when this config is evaluated by the mux
@@ -33,9 +31,9 @@ end
 
 function scheme_for_appearance(appearance)
   if appearance:find 'Dark' then
-    return 'Belafonte Night'
+    return 'Catppuccin Mocha'
   else
-    return 'Belafonte Day'
+    return 'Catppuccin Latte'
   end
 end
 
