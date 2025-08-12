@@ -56,6 +56,12 @@
     (let ((project-name (projectile-project-name)))
       (tab-bar-rename-tab project-name))))
 
+(defun vterm-new-tab ()
+  "Opens a vterm in a new tab"
+  (interactive)
+  (tab-bar-new-tab)
+  (vterm))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General Packages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -114,7 +120,10 @@
 
 ;; Vterm
 (use-package vterm
-    :ensure t)
+  :ensure t
+  :hook ((vterm-mode . (lambda ()
+                         (display-line-numbers-mode 0)
+                         (setq show-trailing-whitespace nil)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Language specific config and packages
@@ -212,6 +221,8 @@
 ;;;; Open other file in split window
 (global-set-key (kbd "M-o") 'ff-find-other-file-other-window)
 (global-set-key (kbd "M-O") 'ff-find-other-file)
+
+(setq dired-listing-switches "-alh")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Terminal popup Config
