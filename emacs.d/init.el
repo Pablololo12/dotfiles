@@ -60,7 +60,7 @@
   "Opens a vterm in a new tab"
   (interactive)
   (tab-bar-new-tab)
-  (vterm))
+  (vterm (generate-new-buffer-name "*vterm*")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General Packages
@@ -129,13 +129,6 @@
 ;;; Language specific config and packages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Company autocomplete
-(use-package company
-  :ensure t
-  :defer t
-  :config
-  (global-company-mode))
-
 ;; Set 4 spaces
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 4)
@@ -147,25 +140,6 @@
 ;; C++ options
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 (add-to-list 'auto-mode-alist '("\\.cppm\\'" . c++-mode))
-
-;;(use-package lsp-mode
-;;  :ensure t
-;;  :defer t
-;;  :hook
-;;    ((c-mode . lsp)
-;;    (c++-mode . lsp))
-;;  :init
-;;  (setq lsp-ui-doc-enable nil)
-;;  (setq lsp-ui-sideline-enable nil)
-;;  (setq lsp-headerline-breadcrumb-enable nil
-;;        lsp-keymap-prefix "C-c l")
-;;  (with-eval-after-load 'lsp-mode
-;;    (define-key lsp-mode-map (kbd "C-x t 2") nil)
-;;    (define-key lsp-mode-map (kbd "M-p") nil)
-;;    (define-key lsp-mode-map (kbd "<mouse-1>") nil)
-;;    (define-key lsp-mode-map (kbd "<mouse-2>") nil)
-;;    (define-key lsp-mode-map (kbd "<mouse-3>") nil)
-;;    (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)))
 
 ;; Haskell
 (use-package haskell-mode
@@ -216,7 +190,7 @@
 ;;;; Imenu to jump to functions in code
 (setq-default imenu-auto-rescan t)
 (setq-default imenu-auto-rescan-maxout 1200000)
-(global-set-key (kbd "M-i") 'imenu)
+(global-set-key (kbd "M-i") 'counsel-imenu)
 
 ;;;; Open other file in split window
 (global-set-key (kbd "M-o") 'ff-find-other-file-other-window)
@@ -298,48 +272,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (prefer-coding-system 'utf-8)
-(set-face-font 'default "FiraCode Nerd Font Mono Light 14")
+(set-face-font 'default "FiraCode Nerd Font Mono Light 12")
 (setq default-frame-alist
       (append (list '(width  . 72) '(height . 40)
                     '(vertical-scroll-bars . nil)
                     '(internal-border-width . 24)
-                    ;;'(undecorated-round . t)
-                    '(font . "FiraCode Nerd Font Mono Light 14"))))
+                    '(font . "FiraCode Nerd Font Mono Light 12"))))
 (set-frame-parameter (selected-frame)
                      'internal-border-width 24)
 
 (setq ns-use-srgb-colorspace nil)
 
 (global-prettify-symbols-mode +1)
-(let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
-               (35 . ".\\(?:###\\|##\\|_(\\|[#(?[_{]\\)")
-               (36 . ".\\(?:>\\)")
-               (37 . ".\\(?:\\(?:%%\\)\\|%\\)")
-               (38 . ".\\(?:\\(?:&&\\)\\|&\\)")
-               (42 . ".\\(?:\\(?:\\*\\*/\\)\\|\\(?:\\*[*/]\\)\\|[*/>]\\)")
-               (43 . ".\\(?:\\(?:\\+\\+\\)\\|[+>]\\)")
-               (45 . ".\\(?:\\(?:-[>-]\\|<<\\|>>\\)\\|[<>}~-]\\)")
-               (46 . ".\\(?:\\(?:\\.[.<]\\)\\|[.=-]\\)")
-               (47 . ".\\(?:\\(?:\\*\\*\\|//\\|==\\)\\|[*/=>]\\)")
-               (48 . ".\\(?:x[a-zA-Z]\\)")
-               (58 . ".\\(?:::\\|[:=]\\)")
-               (59 . ".\\(?:;;\\|;\\)")
-               (60 . ".\\(?:\\(?:!--\\)\\|\\(?:~~\\|->\\|\\$>\\|\\*>\\|\\+>\\|--\\|<[<=-]\\|=[<=>]\\||>\\)\\|[*$+~/<=>|-]\\)")
-               (61 . ".\\(?:\\(?:/=\\|:=\\|<<\\|=[=>]\\|>>\\)\\|[<=>~]\\)")
-               (62 . ".\\(?:\\(?:=>\\|>[=>-]\\)\\|[=>-]\\)")
-               (63 . ".\\(?:\\(\\?\\?\\)\\|[:=?]\\)")
-               (91 . ".\\(?:]\\)")
-               (92 . ".\\(?:\\(?:\\\\\\\\\\)\\|\\\\\\)")
-               (94 . ".\\(?:=\\)")
-               (119 . ".\\(?:ww\\)")
-               (123 . ".\\(?:-\\)")
-               (124 . ".\\(?:\\(?:|[=|]\\)\\|[=>|]\\)")
-               (126 . ".\\(?:~>\\|~~\\|[>=@~-]\\)")
-               )
-             ))
-  (dolist (char-regexp alist)
-    (set-char-table-range composition-function-table (car char-regexp)
-                          `([,(cdr char-regexp) 0 font-shape-gstring]))))
 
 ;; Line spacing, can be 0 for code and 1 or 2 for text
 (setq-default line-spacing 0)
@@ -371,7 +315,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(tab-bar-tab ((t (:background "blue" :foreground "#ffffff" :box t)))))
+ '(tab-bar-tab ((t (:background "forest green" :foreground "#ffffff" :box t)))))
  ;; active tab
 
 ;; Change width threshold for splitting vertically
@@ -382,13 +326,11 @@
   (advice-add fn :after #'balance-windows))
 
 (setq-default
- x-select-enable-clipboard t
- x-select-enable-primary t
- save-interprogram-paste-before-kill t
- apropos-do-all t
- mouse-yank-at-point t)
-
-(blink-cursor-mode 0)
+  x-select-enable-clipboard t
+  x-select-enable-primary t
+  save-interprogram-paste-before-kill t
+  apropos-do-all t
+  mouse-yank-at-point t)
 
 ;; Relative numbers
 ;; Set the line numbers type to relative
@@ -458,84 +400,10 @@
 ;;; MODELINE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun active-buffer-icon ()
-  "Returns active icon based on the buffer type"
-(let* ((extension (file-name-extension (or (buffer-file-name) ""))))
-    (cond
-      ((string-match-p (regexp-quote "*toggle-term-vterm*") (buffer-name)) (propertize " ≥ " 'face '(:background "black" :foreground "white" :height 220)))
-     ((string-equal extension "cpp") (propertize " ☲ " 'face '(:background "NavajoWhite2" :foreground "black" :height 220)))
-     ((string-equal extension "h") (propertize " ∴ " 'face '(:background "SeaGreen1" :foreground "black" :height 220)))
-     (t (propertize " ☰ " 'face '(:background "HotPink2" :foreground "black" :height 220))))))
-
-(defun inactive-buffer-icon ()
-  "Returns active icon based on the buffer type"
-(let* ((extension (file-name-extension (or (buffer-file-name) ""))))
-    (cond
-      ((string-match-p (regexp-quote "*toggle-term-vterm*") (buffer-name)) (propertize " ≥ " 'face '(:background "black" :foreground "white" :height 220)))
-     ((string-equal extension "cpp") (propertize " ☲ " 'face '(:background "gray" :foreground "white" :height 220)))
-     ((string-equal extension "h") (propertize " ∴ " 'face '(:background "gray" :foreground "white" :height 220)))
-     (t (propertize " ☰ " 'face '(:background "gray" :foreground "white" :height 220))))))
-
-(defun buffer-icon ()
-  (if (eq (current-buffer) (window-buffer))
-      (active-buffer-icon)
-    (inactive-buffer-icon)))
-
-(defun ml-fill-to-right (reserve face)
-  "Return empty space, leaving RESERVE space on the right."
-  (propertize " "
-              'display `((space :align-to (- (+ right right-fringe right-margin)
-                                             ,reserve)))
-              'face face))
-
-(defun ml-render (left right &optional fill-face)
-  (concat left
-          (ml-fill-to-right (string-width (format-mode-line right)) fill-face)
-          right))
-
-(defun ml-left ()
-  (concat
-          (eval (buffer-icon))
-          " "
-          (format "%s" (buffer-name))))
-
-(defun ml-right ()
-  (concat
-    (format "%d" (line-number-at-pos))
-    ":"
-    (format "%d" (current-column))
-    " "))
-
-(setq-default header-line-format
-  `((:eval (ml-render (ml-left) (ml-right)))))
-
-(defun update-header-line ()
-  "Update the header-line to reflect the current state."
-  (force-mode-line-update t))
-(add-hook 'post-command-hook 'update-header-line)
-
 (setq-default window-divider-default-bottom-width 3)
 (setq-default window-divider-default-places 'bottom-only)
 (window-divider-mode 1)
-(setq-default mode-line-format nil)
-
-;; Set the header line face to match the background color
-(set-face-attribute 'header-line nil
-                    :background (face-attribute 'default :background)
-                    :foreground (face-attribute 'default :foreground)
-                    :box nil)
-
-;; Set the color for the line numbers
-(set-face-attribute 'line-number nil
-                    :foreground (face-attribute 'default :foreground)
-                    :background (face-attribute 'default :background))
-
-(set-face-attribute 'fringe nil
-                    :foreground (face-attribute 'default :foreground)
-                    :background (face-attribute 'default :background))
-
-(set-face-attribute 'mode-line nil
-                    :box nil)
+(column-number-mode 1)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
