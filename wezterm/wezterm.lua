@@ -18,7 +18,6 @@ config.font_size = 14.0
 config.use_fancy_tab_bar = true
 config.enable_tab_bar = true
 config.hide_tab_bar_if_only_one_tab = true
-config.window_decorations = "RESIZE"
 
 -- wezterm.gui is not available to the mux server, so take care to
 -- do something reasonable when this config is evaluated by the mux

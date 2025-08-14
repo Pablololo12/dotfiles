@@ -47,14 +47,8 @@
 (defalias 'describe-gnu-project 'ignore)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Functions for hooks
+;;; Personal functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun my/change-tab-name ()
-  "Rename the current tab to the name of the Projectile project."
-  (when (projectile-project-p)
-    (let ((project-name (projectile-project-name)))
-      (tab-bar-rename-tab project-name))))
 
 (defun vterm-new-tab ()
   "Opens a vterm in a new tab"
@@ -99,7 +93,8 @@
     (projectile-globally-ignored-directories '("build"))
     (projectile-switch-project-action
      (lambda ()
-       (my/change-tab-name)
+       (let ((project-name (projectile-project-name)))
+         (tab-bar-rename-tab project-name))
        (projectile-dired)))
   :config
     (projectile-mode +1))
@@ -124,6 +119,17 @@
   :hook ((vterm-mode . (lambda ()
                          (display-line-numbers-mode 0)
                          (setq show-trailing-whitespace nil)))))
+
+(use-package term-control
+  :load-path "~/utils/term-control.el/"
+  :custom
+    (term-control-vsize 33)
+    (term-control-hsize 33)
+  :bind
+    (("s-h" . term-control-switch-to-term)
+    ("s-j" . term-control-toggle)
+    ("s-H" . term-control-switch-to-term-ver)
+    ("s-J" . term-control-toggle-ver)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Language specific config and packages
@@ -183,6 +189,7 @@
 (setq auto-revert-remote-files nil)
 (setq tramp-use-ssh-controlmaster-options nil)
 (setq tramp-auto-save-directory "/tmp")
+
 ;; Personal settings
 ;;;; Auto reload buffers on file change
 (global-auto-revert-mode t)
@@ -196,22 +203,11 @@
 (global-set-key (kbd "M-o") 'ff-find-other-file-other-window)
 (global-set-key (kbd "M-O") 'ff-find-other-file)
 
+;;;; Improves size info in dired
 (setq dired-listing-switches "-alh")
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Terminal popup Config
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(use-package term-control
-  :load-path "~/utils/term-control.el/"
-  :custom
-    (term-control-vsize 33)
-    (term-control-hsize 33)
-  :bind
-    (("s-h" . term-control-switch-to-term)
-    ("s-j" . term-control-toggle)
-    ("s-H" . term-control-switch-to-term-ver)
-    ("s-J" . term-control-toggle-ver)))
+;;;; Disables abbrev mode
+(setq-default abbrev-mode nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Dashboard
@@ -247,15 +243,17 @@
         (widget-insert "No recent projects found.\n"))
       (widget-insert "\n\n")
       (when (display-graphic-p)
-        (let ((img (create-image (concat data-directory "images/splash.svg")
-                                 'png nil :ascent 'center)))
-          (when img
-            (insert-image img)
-            (insert "\n\n"))))
+        (let* ((candidates (list (expand-file-name "images/splash.svg" data-directory)
+                         (expand-file-name "images/splash.png" data-directory)
+                         (expand-file-name "images/splash.xpm" data-directory)))
+                (file (seq-find #'file-exists-p candidates)))
+            (when file
+                (insert-image (create-image file nil nil :ascent 'center))
+                (insert "\n\n"))))
 
       ;; ASCII Logo for Terminal Users
       (unless (display-graphic-p)
-        (Widget-insert "EMACS\n\n\n"))
+        (widget-insert "EMACS\n\n\n"))
 
       ;; Finalize widget setup
       (use-local-map widget-keymap)            ; use widget keymap for Tab/RET behavior
@@ -272,16 +270,16 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (prefer-coding-system 'utf-8)
-(set-face-font 'default "FiraCode Nerd Font Mono Light 12")
+(set-face-font 'default "FiraCode Nerd Font Mono Light 14")
 (setq default-frame-alist
       (append (list '(width  . 72) '(height . 40)
                     '(vertical-scroll-bars . nil)
                     '(internal-border-width . 24)
-                    '(font . "FiraCode Nerd Font Mono Light 12"))))
+                    '(font . "FiraCode Nerd Font Mono Light 14"))))
 (set-frame-parameter (selected-frame)
                      'internal-border-width 24)
 
-(setq ns-use-srgb-colorspace nil)
+(setq ns-use-srgb-colorspace t)
 
 (global-prettify-symbols-mode +1)
 
@@ -322,8 +320,7 @@
 (setq-default split-width-threshold 125)
 (setq-default split-height-threshold 100)
 ;; Rebalance windows everytime you split or close
-(dolist (fn '(split-window-right split-window-below delete-window))
-  (advice-add fn :after #'balance-windows))
+(add-hook 'window-configuration-change-hook #'balance-windows)
 
 (setq-default
   x-select-enable-clipboard t
@@ -415,3 +412,4 @@
      default))
  '(package-selected-packages nil))
 
+(put 'dired-find-alternate-file 'disabled nil)
