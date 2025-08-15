@@ -224,8 +224,25 @@
       (projectile-mode 1)
       (unless projectile-known-projects
         (projectile-load-known-projects))
-      (widget-insert "📁 **Recent Projects:**\n")
-      (widget-insert "========================\n\n")
+
+      ;; Image
+      (when (display-graphic-p)
+        (let* ((candidates (list (expand-file-name "images/splash.svg" data-directory)
+                         (expand-file-name "images/splash.png" data-directory)
+                         (expand-file-name "images/splash.xpm" data-directory)))
+                (file (seq-find #'file-exists-p candidates)))
+            (when file
+                (insert-image (create-image file nil nil :ascent 'center))
+                (insert "\n\n"))))
+
+      ;; ASCII Logo for Terminal Users
+      (unless (display-graphic-p)
+        (widget-insert "EMACS\n\n"))
+
+      ;; Header
+      (widget-insert "📁   Recent Projects:\n")
+      (widget-insert (make-string 25 ?─) "\n\n")
+
       ;; Create a button for each project (limit to 5 recent ones)
       (if (and projectile-known-projects (> (length projectile-known-projects) 0))
           (dolist (proj (cl-subseq projectile-known-projects 
@@ -241,24 +258,13 @@
                                            (funcall projectile-switch-project-action)))))
               (widget-insert "\n")))
         (widget-insert "No recent projects found.\n"))
-      (widget-insert "\n\n")
-      (when (display-graphic-p)
-        (let* ((candidates (list (expand-file-name "images/splash.svg" data-directory)
-                         (expand-file-name "images/splash.png" data-directory)
-                         (expand-file-name "images/splash.xpm" data-directory)))
-                (file (seq-find #'file-exists-p candidates)))
-            (when file
-                (insert-image (create-image file nil nil :ascent 'center))
-                (insert "\n\n"))))
-
-      ;; ASCII Logo for Terminal Users
-      (unless (display-graphic-p)
-        (widget-insert "EMACS\n\n\n"))
-
       ;; Finalize widget setup
-      (use-local-map widget-keymap)            ; use widget keymap for Tab/RET behavior
+      (use-local-map widget-keymap) ; use widget keymap for Tab/RET behavior
       (widget-setup)
-      (goto-char (point-min)))
+      (goto-char (point-min))
+      (widget-forward 1))
+      ;;(when (text-property-any (point-min) (point-max) 'widget t)
+      ;;  (widget-forward 3)))
     buf))  ; return the buffer
 
 ;; Use the custom dashboard at startup (if no file is opened)
