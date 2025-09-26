@@ -11,27 +11,15 @@
   (setenv "PATH" (concat "/opt/homebrew/bin:/opt/homebrew/sbin:" (getenv "PATH")))
     (setq exec-path (split-string (getenv "PATH") path-separator)))
 
-;; Improve openning times by allowing the garbage collector to run less often
-(setq prev-gc-cons-threshold gc-cons-threshold)
-(setq gc-cons-threshold 50000000)
-
+;; Avoid seeing warning errors
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
-(customize-set-variable 'native-comp-speed 2)
-(customize-set-variable 'native-comp-deferred-compilation nil)
-
-(add-hook 'emacs-startup-hook 'my/set-gc-threshold)
-(defun my/set-gc-threshold ()
-  "Reset `gc-cons-threshold' to its default value."
-  (setq gc-cons-threshold prev-gc-cons-threshold))
-;; Reset gc to default
+;; We set the garbage collector threshold to 512MB
+(setq gc-cons-threshold (* 512 1024 1024))
 
 ;; minimal UI
-(when tool-bar-mode
-  (tool-bar-mode -1))
-(when scroll-bar-mode
-  (scroll-bar-mode -1))
-(when menu-bar-mode
-  (menu-bar-mode -1))
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(menu-bar-mode -1)
 
 ;; Ask y/n instead of yes/no
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -40,7 +28,14 @@
 (setq
  create-lockfiles nil
  make-backup-files nil
+ auto-save-default nil
  create-lockfiles nil)
+
+(setq auto-save-visited-interval 5) ;; seconds of idle before saving
+(auto-save-visited-mode 1)
+
+;; We run the garbage-collector when we go out of focus
+(add-function :after after-focus-change-function (lambda () (garbage-collect)))
 
 ;; Not show emacs news
 (defalias 'view-emacs-news 'ignore)
@@ -64,26 +59,6 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
 
-;; Fuzzy search
-(use-package ivy
-  :defer 0.1
-  :ensure t
-  :diminish
-  :custom
-    (ivy-count-format "(%d/%d) ")
-    (ivy-use-virtual-buffers t)
-  :config (ivy-mode))
-
-(use-package counsel
-  :after ivy
-  :ensure t
-  :bind
-  (("M-x" . counsel-M-x)
-   ("C-c g" . counsel-git-grep)
-   ("C-c j" . counsel-ag)
-   ("C-c f" . counsel-describe-function))
-  :config (counsel-mode))
-
 ;; projectile
 (use-package projectile
   :ensure t
@@ -106,12 +81,11 @@
     (evil-want-C-u-scroll t)
     (evil-want-C-i-jump nil)
     (evil-search-module 'evil-search)
+    (evil-ex-search-highlight-all t)
+    (lazy-highlight-cleanup nil)
   :config
     (evil-mode 1)
     (evil-set-initial-state 'vterm-mode 'emacs))
-
-(setq evil-ex-search-highlight-all t)
-(setq lazy-highlight-cleanup nil)
 
 ;; Vterm
 (use-package vterm
@@ -120,6 +94,7 @@
                          (display-line-numbers-mode 0)
                          (setq show-trailing-whitespace nil)))))
 
+;; termcontrol my own package
 (use-package term-control
   :load-path "~/utils/term-control.el/"
   :custom
@@ -147,37 +122,18 @@
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 (add-to-list 'auto-mode-alist '("\\.cppm\\'" . c++-mode))
 
-;; Haskell
-(use-package haskell-mode
-  :defer t
-  :ensure t)
+(setq language-modes '(haskell-mode
+                      lua-mode
+                      json-mode
+                      clojure-mode
+                      package-lint
+                      rust-mode
+                      cargo))
 
-;; Lua
-(use-package lua-mode
-  :defer t
-  :ensure t)
-
-;; json
-(use-package json-mode
-  :defer t
-  :ensure t)
-
-;; clojure
-(use-package clojure-mode
-  :defer t
-  :ensure t)
-
-(use-package package-lint
-  :defer t
-  :ensure t)
-
-(use-package rust-mode
-  :defer t
-  :ensure t)
-
-(use-package cargo
-  :defer t
-  :ensure t)
+(dolist (pkg language-modes)
+  (eval `(use-package ,pkg
+           :ensure t
+           :defer t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General Config
@@ -197,7 +153,7 @@
 ;;;; Imenu to jump to functions in code
 (setq-default imenu-auto-rescan t)
 (setq-default imenu-auto-rescan-maxout 1200000)
-(global-set-key (kbd "M-i") 'counsel-imenu)
+(global-set-key (kbd "M-i") 'imenu)
 
 ;;;; Open other file in split window
 (global-set-key (kbd "M-o") 'ff-find-other-file-other-window)
@@ -209,67 +165,12 @@
 ;;;; Disables abbrev mode
 (setq-default abbrev-mode nil)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Dashboard
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Replaces dired buffer instead of creating a new one
+(put 'dired-find-alternate-file 'disabled nil)
 
-(require 'widget)
-(defun my/startup-projects-dashboard ()
-  "Display an interactive list of recent projects on startup."
-  (let ((buf (generate-new-buffer "*Start Page*")))
-    (with-current-buffer buf
-      ;; Prepare buffer for widgets
-      (erase-buffer)
-      (remove-overlays)
-      (projectile-mode 1)
-      (unless projectile-known-projects
-        (projectile-load-known-projects))
-
-      ;; Image
-      (when (display-graphic-p)
-        (let* ((candidates (list (expand-file-name "images/splash.svg" data-directory)
-                         (expand-file-name "images/splash.png" data-directory)
-                         (expand-file-name "images/splash.xpm" data-directory)))
-                (file (seq-find #'file-exists-p candidates)))
-            (when file
-                (insert-image (create-image file nil nil :ascent 'center))
-                (insert "\n\n"))))
-
-      ;; ASCII Logo for Terminal Users
-      (unless (display-graphic-p)
-        (widget-insert "EMACS\n\n"))
-
-      ;; Header
-      (widget-insert "📁   Recent Projects:\n")
-      (widget-insert (make-string 25 ?─) "\n\n")
-
-      ;; Create a button for each project (limit to 5 recent ones)
-      (if (and projectile-known-projects (> (length projectile-known-projects) 0))
-          (dolist (proj (cl-subseq projectile-known-projects 
-                                   0 (min 10 (length projectile-known-projects))))
-            (let ((proj-name (file-name-nondirectory (directory-file-name proj))))
-              (widget-create 'push-button
-                             :tag proj-name             ; Displayed name
-                             :value proj                ; Store full path
-                             :notify (lambda (widget &rest _ignore)
-                                       ;; Action: Open the project
-                                       (let ((proj-path (widget-value widget)))
-                                         (let ((default-directory proj-path))
-                                           (funcall projectile-switch-project-action)))))
-              (widget-insert "\n")))
-        (widget-insert "No recent projects found.\n"))
-      ;; Finalize widget setup
-      (use-local-map widget-keymap) ; use widget keymap for Tab/RET behavior
-      (widget-setup)
-      (goto-char (point-min))
-      (widget-forward 1))
-      ;;(when (text-property-any (point-min) (point-max) 'widget t)
-      ;;  (widget-forward 3)))
-    buf))  ; return the buffer
-
-;; Use the custom dashboard at startup (if no file is opened)
-(setq inhibit-startup-screen t
-      initial-buffer-choice #'my/startup-projects-dashboard)
+;; Fuzzy search
+(setq completion-styles '(flex))
+(fido-vertical-mode 1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; UI
@@ -277,26 +178,10 @@
 
 (prefer-coding-system 'utf-8)
 (set-face-font 'default "FiraCode Nerd Font Mono Light 14")
-(setq default-frame-alist
-      (append (list '(width  . 72) '(height . 40)
-                    '(vertical-scroll-bars . nil)
-                    '(internal-border-width . 24)
-                    '(font . "FiraCode Nerd Font Mono Light 14"))))
-(set-frame-parameter (selected-frame)
-                     'internal-border-width 24)
 
 (setq ns-use-srgb-colorspace t)
 
 (global-prettify-symbols-mode +1)
-
-;; Line spacing, can be 0 for code and 1 or 2 for text
-(setq-default line-spacing 0)
-
-;; Underline line at descent position, not baseline position
-(setq x-underline-at-descent-line t)
-
-;; No ugly button for checkboxes
-(setq widget-image-enable nil)
 
 ;; Line cursor and no blink
 (set-default 'cursor-type  '(bar . 1))
@@ -319,12 +204,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(tab-bar-tab ((t (:background "forest green" :foreground "#ffffff" :box t)))))
+ '(tab-bar-tab ((t (:background "forest green" :foreground "#ffffff" :box nil)))))
  ;; active tab
 
-;; Change width threshold for splitting vertically
-(setq-default split-width-threshold 125)
-(setq-default split-height-threshold 100)
 ;; Rebalance windows everytime you split or close
 (add-hook 'window-configuration-change-hook #'balance-windows)
 
@@ -339,63 +221,26 @@
 ;; Set the line numbers type to relative
 (setq display-line-numbers-type 'relative)
 (global-hl-line-mode)
-(global-display-line-numbers-mode 'relative)
+(global-display-line-numbers-mode)
 
 ;; Show trailing white space
 (setq-default show-trailing-whitespace t)
-
-(add-to-list 'display-buffer-alist
-            '("\\*xref\\*"
-                (display-buffer-in-side-window)
-                (side . right)))
-
-(add-to-list 'display-buffer-alist
-            '("\\*compilation\\*"
-                (display-buffer-at-bottom)
-                (window-height . 0.25)))
-
-(add-to-list 'display-buffer-alist
-             '("\\*ag search.*\\*"
-               (display-buffer-at-bottom)
-               (window-height . 0.25)))
-
-(defun my-close-window-on-kill ()
-  "Close the window when killing an `ag` search or `*compilation*` buffer."
-  (when (or (string-match-p "\\*ag search.*\\*" (buffer-name))
-            (string-match-p "\\*compilation\\*" (buffer-name)))
-    (delete-window)))
-
-(add-hook 'kill-buffer-hook 'my-close-window-on-kill)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Themes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;(load-theme 'modus-operandi :no-confirm)
-(use-package catppuccin-theme
+(use-package ef-themes
   :ensure t
-  :init
-  ;; Load the Catppuccin theme (without prompt). 
-  ;; This will apply the default flavor (Mocha) initially.
-  (setq catppuccin-flavor 'frappe)
-  (load-theme 'catppuccin :no-confirm))
+  :config
+  (load-theme 'ef-light :no-confirm))
 
 (use-package auto-dark
   :ensure t
-  :custom
-  ;; Tell auto-dark to use Catppuccin for both dark and light modes
-  (auto-dark-themes '((catppuccin) (catppuccin)))
   :config
   ;; When OS switches to dark mode:
-  (add-hook 'auto-dark-dark-mode-hook
-            (lambda ()
-              (setq catppuccin-flavor 'frappe)   ;; use Mocha (dark variant)
-              (catppuccin-reload)))
-  ;; When OS switches to light mode:
-  (add-hook 'auto-dark-light-mode-hook
-            (lambda ()
-              (setq catppuccin-flavor 'latte)   ;; use Latte (light variant)
-              (catppuccin-reload)))
+  (setq auto-dark-themes '((ef-dream) (ef-light)))
+  (setq custom-safe-themes t)
   ;; Start auto-dark-mode to begin monitoring system appearance
   (auto-dark-mode t))
 
@@ -403,10 +248,74 @@
 ;;; MODELINE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(setq-default window-divider-default-bottom-width 3)
-(setq-default window-divider-default-places 'bottom-only)
-(window-divider-mode 1)
 (column-number-mode 1)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Dashboard
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(require 'widget)
+(defun my/startup-projects-dashboard ()
+  "Display an interactive list of recent projects on startup."
+  (let ((buf (get-buffer-create "*Start Page*")))
+    (with-current-buffer buf
+      (let ((inhibit-read-only t))
+        (kill-all-local-variables)       ;; clean slate; no read-only major mode
+        (erase-buffer)
+        (remove-overlays)
+
+        (projectile-mode 1)
+        (unless projectile-known-projects
+          (projectile-load-known-projects))
+
+        ;; Image at top
+        (when (display-graphic-p)
+          (let* ((candidates (list (expand-file-name "images/splash.svg" data-directory)
+                                   (expand-file-name "images/splash.png" data-directory)
+                                   (expand-file-name "images/splash.xpm"  data-directory)))
+                 (file (seq-find #'file-exists-p candidates)))
+            (when file
+              (insert-image (create-image file nil nil :ascent 'center))
+              (insert "\n\n"))))
+
+        ;; ASCII fallback
+        (unless (display-graphic-p)
+          (widget-insert "EMACS\n\n"))
+
+        ;; Header + rule
+        (widget-insert "📁   Recent Projects:\n")
+        (widget-insert (make-string 25 (if (char-displayable-p ?─) ?─ ?-)) "\n\n")
+
+        ;; Buttons
+        (if (and projectile-known-projects (> (length projectile-known-projects) 0))
+            (dolist (proj (cl-subseq projectile-known-projects
+                                     0 (min 10 (length projectile-known-projects))))
+              (let ((proj-name (file-name-nondirectory (directory-file-name proj))))
+                (widget-create 'push-button
+                               :tag proj-name
+                               :value proj
+                               :notify (lambda (widget &rest _)
+                                         (let ((proj-path (widget-value widget)))
+                                           (let ((default-directory proj-path))
+                                             (funcall projectile-switch-project-action)))))
+                (widget-insert "\n")))
+          (widget-insert "No recent projects found.\n"))
+
+        ;; Finalize
+        (use-local-map widget-keymap)))
+    (with-current-buffer buf
+      (widget-setup)                      ;; this makes the buffer read-only appropriately
+      (goto-char (point-min))
+      (widget-forward 1))
+    buf))
+
+;; Use the custom dashboard at startup (if no file is opened)
+(setq inhibit-startup-screen t
+      initial-buffer-choice #'my/startup-projects-dashboard)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Do not touch
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -414,8 +323,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("98b4ef49c451350c28a8c20c35c4d2def5d0b8e5abbc962da498c423598a1cdd"
+   '("59c36051a521e3ea68dc530ded1c7be169cd19e8873b7994bfc02a216041bf3b"
+     "c46651ab216eb31e699be1bd5e6df8229b08005b534194c1ea92519b09661d71"
+     "98b4ef49c451350c28a8c20c35c4d2def5d0b8e5abbc962da498c423598a1cdd"
      default))
  '(package-selected-packages nil))
-
-(put 'dired-find-alternate-file 'disabled nil)
