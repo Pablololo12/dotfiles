@@ -15,14 +15,16 @@
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
 ;; We set the garbage collector threshold to 512MB
 (setq gc-cons-threshold (* 512 1024 1024))
+;; We run the garbage-collector when we go out of focus
+(add-function :after after-focus-change-function (lambda () (garbage-collect)))
 
 ;; minimal UI
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (menu-bar-mode -1)
-
-;; Ask y/n instead of yes/no
-(fset 'yes-or-no-p 'y-or-n-p)
+;; Not show emacs news
+(defalias 'view-emacs-news 'ignore)
+(defalias 'describe-gnu-project 'ignore)
 
 ;; No need for ~ files when editing
 (setq
@@ -33,13 +35,6 @@
 
 (setq auto-save-visited-interval 5) ;; seconds of idle before saving
 (auto-save-visited-mode 1)
-
-;; We run the garbage-collector when we go out of focus
-(add-function :after after-focus-change-function (lambda () (garbage-collect)))
-
-;; Not show emacs news
-(defalias 'view-emacs-news 'ignore)
-(defalias 'describe-gnu-project 'ignore)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Personal functions
