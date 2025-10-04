@@ -101,6 +101,9 @@
     ("s-H" . term-control-switch-to-term-ver)
     ("s-J" . term-control-toggle-ver)))
 
+(use-package tasker
+  :load-path "~/utils/tasker.el/")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Language specific config and packages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
