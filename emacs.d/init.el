@@ -128,10 +128,39 @@
                       rust-mode
                       cargo))
 
+(use-package slime
+  :ensure t
+  :init
+      (setq inferior-lisp-program "sbcl")
+  :hook
+      (lisp-mode . slime-mode)
+      (slime-repl-mode . eldoc-mode)
+      (slime-connected . (lambda ()
+                       (slime-repl-eval-string "(load \"~/.lisp-utils/utils.lisp\")")))
+  :config
+      (slime-setup '(slime-fancy)))
+
 (dolist (pkg language-modes)
   (eval `(use-package ,pkg
            :ensure t
            :defer t)))
+
+(use-package eglot
+  :ensure t
+  :defer t
+  :hook ((c-mode c-ts-mode c++-mode c++-ts-mode python-mode) . eglot-ensure)
+  :custom
+    (eglot-ignored-server-capabilities '(:codeActionProvider))
+  :config
+    (add-to-list 'eglot-server-programs
+            '((c-mode c-ts-mode c++-mode c++-ts-mode)
+                . ("clangd"
+                    "--background-index"
+                    "--clang-tidy"
+                    "--completion-style=detailed"
+                    "--header-insertion=never"
+                    "--compile-commands-dir=.")))
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General Config
@@ -175,7 +204,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (prefer-coding-system 'utf-8)
-(set-face-font 'default "FiraCode Nerd Font Mono Light 14")
+(set-face-font 'default "CommitMono Light 14");; "Ioskeley Mono Light 14");; "FiraCode Nerd Font Mono Light 14")
 
 (setq ns-use-srgb-colorspace t)
 

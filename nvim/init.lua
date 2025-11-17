@@ -25,8 +25,13 @@ set.splitright=true
 set.showmode=false
 -- No mouse for hardcore mode
 set.mouse=''
+set.cursorline=true
 -- To auto read files when they have been modified
 set.autoread=true
+vim.api.nvim_create_autocmd({"FocusGained","BufEnter","VimResume", "CursorHold"}, {
+  pattern = '*',
+  command = 'checktime'
+})
 
 local bind = vim.keymap
 -- Space as leader key
@@ -35,9 +40,6 @@ vim.g.mapleader=' '
 bind.set('n', '<S-Tab>', ':tabprevious<CR>')
 bind.set('n', '<Tab>', ':tabnext<CR>')
 
-bind.set({'n','v'}, 'j', 'gj')
-bind.set({'n','v'}, 'k', 'gk')
-
 bind.set('n', '<C-J>', '<C-W><C-J>')
 bind.set('n', '<C-K>', '<C-W><C-K>')
 bind.set('n', '<C-L>', '<C-W><C-L>')
@@ -45,6 +47,8 @@ bind.set('n', '<C-H>', '<C-W><C-H>')
 
 bind.set('n', '<C-d>', '<C-d>zz')
 bind.set('n', '<C-u>', '<C-u>zz')
+
+bind.set('n', '<leader>q', ':bp<bar>sp<bar>bn<bar>bd<CR>')
 
 bind.set('n', '<leader>o', ':OpenOtherFile<CR>')
 bind.set('n', '<leader>O', ':OpenOtherFileInPlace<CR>')
@@ -55,7 +59,13 @@ bind.set('n', '<leader>ff', builtin.find_files, {})
 bind.set('n', '<leader>fg', builtin.live_grep, {})
 bind.set('n', '<leader>fb', builtin.buffers, {})
 bind.set('n', '<leader>fh', builtin.help_tags, {})
-bind.set('n', '<leader>n', ':Telescope file_browser<CR>')
+bind.set('n', '<leader>d', ':Telescope file_browser<CR>')
+
+bind.set('n', '<leader>li', builtin.lsp_implementations, {})
+bind.set('n', '<leader>ld', builtin.lsp_definitions, {})
+bind.set('n', '<leader>lr', builtin.lsp_references, {})
+bind.set('n', '<leader>i', builtin.lsp_document_symbols, {})
+bind.set('n', '<leader>ll', builtin.lsp_workspace_symbols, {})
 
 -- Personal commands
 vim.api.nvim_create_user_command(
@@ -116,11 +126,16 @@ vim.api.nvim_create_autocmd('filetype', {
     end
 })
 
+-- lsp
+local lspconfig = require('lspconfig')
+
+-- Configure clangd
+lspconfig.clangd.setup{}
 
 -- Status line
 require('lualine').setup{
     options = {
-        theme = 'onelight',
+        theme = 'ayu',
         section_separators = '',
         component_separators = '',
     }
