@@ -7,24 +7,15 @@
 ;;; Start config and general appeareance
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(when (eq system-type 'darwin)
-  (setenv "PATH" (concat "/opt/homebrew/bin:/opt/homebrew/sbin:" (getenv "PATH")))
-    (setq exec-path (split-string (getenv "PATH") path-separator)))
-
-;; Avoid seeing warning errors
-(customize-set-variable 'native-comp-async-report-warnings-errors nil)
-;; We set the garbage collector threshold to 512MB
-(setq gc-cons-threshold (* 512 1024 1024))
-;; We run the garbage-collector when we go out of focus
-(add-function :after after-focus-change-function (lambda () (garbage-collect)))
-
 ;; minimal UI
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (menu-bar-mode -1)
-;; Not show emacs news
-(defalias 'view-emacs-news 'ignore)
-(defalias 'describe-gnu-project 'ignore)
+(column-number-mode 1)
+
+(when (eq system-type 'darwin)
+  (setenv "PATH" (concat "/opt/homebrew/bin:/opt/homebrew/sbin:" (getenv "PATH")))
+    (setq exec-path (split-string (getenv "PATH") path-separator)))
 
 ;; No need for ~ files when editing
 (setq
@@ -33,18 +24,7 @@
  auto-save-default nil
  create-lockfiles nil)
 
-(setq auto-save-visited-interval 5) ;; seconds of idle before saving
-(auto-save-visited-mode 1)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Personal functions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun vterm-new-tab ()
-  "Opens a vterm in a new tab"
-  (interactive)
-  (tab-bar-new-tab)
-  (vterm (generate-new-buffer-name "*vterm*")))
+(setq custom-file "~/.emacs.custom")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General Packages
@@ -54,33 +34,25 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
 
-;; projectile
-(use-package projectile
+;; project.el
+(use-package project
   :ensure t
-  :bind
-    (("M-p" . 'projectile-command-map))
-  :custom
-    (projectile-globally-ignored-directories '("build"))
-    (projectile-switch-project-action
-     (lambda ()
-       (let ((project-name (projectile-project-name)))
-         (tab-bar-rename-tab project-name))
-       (projectile-dired)))
+  :bind-keymap ("M-p" . project-prefix-map)
   :config
-    (projectile-mode +1))
+  ;; Ignore build directories
+  (add-to-list 'project-vc-ignores "build"))
 
-;; Evil mode
-(use-package evil
-  :ensure t
-  :custom
-    (evil-want-C-u-scroll t)
-    (evil-want-C-i-jump nil)
-    (evil-search-module 'evil-search)
-    (evil-ex-search-highlight-all t)
-    (lazy-highlight-cleanup nil)
-  :config
-    (evil-mode 1)
-    (evil-set-initial-state 'vterm-mode 'emacs))
+(defun my/project-switch-hook (orig-fun &rest args)
+  "Run custom actions after switching project."
+  (let ((result (apply orig-fun args)))
+    ;; Your actions here:
+    (message "Switched to project: %s" (car args))
+    ;; Example: rename tab to project name
+    (tab-bar-rename-tab
+     (file-name-nondirectory (directory-file-name (car args))))
+    result))
+
+(advice-add 'project-switch-project :around #'my/project-switch-hook)
 
 ;; Vterm
 (use-package vterm
@@ -120,14 +92,6 @@
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 (add-to-list 'auto-mode-alist '("\\.cppm\\'" . c++-mode))
 
-(setq language-modes '(haskell-mode
-                      lua-mode
-                      json-mode
-                      clojure-mode
-                      package-lint
-                      rust-mode
-                      cargo))
-
 (use-package slime
   :ensure t
   :init
@@ -140,27 +104,14 @@
   :config
       (slime-setup '(slime-fancy)))
 
+(setq language-modes '(haskell-mode
+                      json-mode
+                      package-lint))
+
 (dolist (pkg language-modes)
   (eval `(use-package ,pkg
            :ensure t
            :defer t)))
-
-(use-package eglot
-  :ensure t
-  :defer t
-  :hook ((c-mode c-ts-mode c++-mode c++-ts-mode python-mode) . eglot-ensure)
-  :custom
-    (eglot-ignored-server-capabilities '(:codeActionProvider))
-  :config
-    (add-to-list 'eglot-server-programs
-            '((c-mode c-ts-mode c++-mode c++-ts-mode)
-                . ("clangd"
-                    "--background-index"
-                    "--clang-tidy"
-                    "--completion-style=detailed"
-                    "--header-insertion=never"
-                    "--compile-commands-dir=.")))
-  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General Config
@@ -199,20 +150,19 @@
 (setq completion-styles '(flex))
 (fido-vertical-mode 1)
 
+;; Easily move around panes with shift+arrows
+(windmove-default-keybindings)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; UI
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (prefer-coding-system 'utf-8)
-(set-face-font 'default "CommitMono Light 14");; "Ioskeley Mono Light 14");; "FiraCode Nerd Font Mono Light 14")
+(set-face-font 'default "CommitMono Light 14")
 
 (setq ns-use-srgb-colorspace t)
 
 (global-prettify-symbols-mode +1)
-
-;; Line cursor and no blink
-(set-default 'cursor-type  '(bar . 1))
-(blink-cursor-mode 0)
 
 ;; No sound
 (setq visible-bell t)
@@ -223,16 +173,8 @@
 (tab-bar-mode 1)      ; enable the C-x t prefix at once
 (setq-default tab-bar-new-button-show nil ;; don't show new tab button
         tab-bar-close-button-show nil ;; don't show tab close button
-        tab-bar-new-tab-choice #'my/startup-projects-dashboard
+        tab-bar-new-tab-choice "*scratch*"
         tab-line-close-button-show nil) ;; don't show tab close button
-
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(tab-bar-tab ((t (:background "forest green" :foreground "#ffffff" :box nil)))))
- ;; active tab
 
 ;; Rebalance windows everytime you split or close
 (add-hook 'window-configuration-change-hook #'balance-windows)
@@ -249,14 +191,7 @@
 (setq display-line-numbers-type 'relative)
 (global-hl-line-mode)
 (global-display-line-numbers-mode)
-
-(use-package highlight-indent-guides
-  :ensure t
-  :hook (prog-mode . highlight-indent-guides-mode)
-  :config
-  (setq highlight-indent-guides-method 'character
-        highlight-indent-guides-auto-enabled t))
-
+ 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Themes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -275,88 +210,3 @@
   ;; Start auto-dark-mode to begin monitoring system appearance
   (auto-dark-mode t))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; MODELINE
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(use-package round-line
-  :load-path "~/utils/round-line.el/")
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Dashboard
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(require 'widget)
-(defun my/startup-projects-dashboard ()
-  "Display an interactive list of recent projects on startup."
-  (let ((buf (get-buffer-create "*Start Page*")))
-    (with-current-buffer buf
-      (let ((inhibit-read-only t))
-        (kill-all-local-variables)       ;; clean slate; no read-only major mode
-        (erase-buffer)
-        (remove-overlays)
-
-        (projectile-mode 1)
-        (unless projectile-known-projects
-          (projectile-load-known-projects))
-
-        ;; Image at top
-        (when (display-graphic-p)
-          (let* ((candidates (list (expand-file-name "images/splash.svg" data-directory)
-                                   (expand-file-name "images/splash.png" data-directory)
-                                   (expand-file-name "images/splash.xpm"  data-directory)))
-                 (file (seq-find #'file-exists-p candidates)))
-            (when file
-              (insert-image (create-image file nil nil :ascent 'center))
-              (insert "\n\n"))))
-
-        ;; ASCII fallback
-        (unless (display-graphic-p)
-          (widget-insert "EMACS\n\n"))
-
-        ;; Header + rule
-        (widget-insert "📁   Recent Projects:\n")
-        (widget-insert (make-string 25 (if (char-displayable-p ?─) ?─ ?-)) "\n\n")
-
-        ;; Buttons
-        (if (and projectile-known-projects (> (length projectile-known-projects) 0))
-            (dolist (proj (cl-subseq projectile-known-projects
-                                     0 (min 10 (length projectile-known-projects))))
-              (let ((proj-name (file-name-nondirectory (directory-file-name proj))))
-                (widget-create 'push-button
-                               :tag proj-name
-                               :value proj
-                               :notify (lambda (widget &rest _)
-                                         (let ((proj-path (widget-value widget)))
-                                           (let ((default-directory proj-path))
-                                             (funcall projectile-switch-project-action)))))
-                (widget-insert "\n")))
-          (widget-insert "No recent projects found.\n"))
-
-        ;; Finalize
-        (use-local-map widget-keymap)))
-    (with-current-buffer buf
-      (widget-setup)                      ;; this makes the buffer read-only appropriately
-      (goto-char (point-min))
-      (widget-forward 1))
-    buf))
-
-;; Use the custom dashboard at startup (if no file is opened)
-(setq inhibit-startup-screen t
-      initial-buffer-choice #'my/startup-projects-dashboard)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Do not touch
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("59c36051a521e3ea68dc530ded1c7be169cd19e8873b7994bfc02a216041bf3b"
-     "c46651ab216eb31e699be1bd5e6df8229b08005b534194c1ea92519b09661d71"
-     "98b4ef49c451350c28a8c20c35c4d2def5d0b8e5abbc962da498c423598a1cdd"
-     default))
- '(package-selected-packages nil))
