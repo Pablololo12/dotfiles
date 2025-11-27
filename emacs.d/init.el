@@ -92,18 +92,6 @@
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 (add-to-list 'auto-mode-alist '("\\.cppm\\'" . c++-mode))
 
-(use-package slime
-  :ensure t
-  :init
-      (setq inferior-lisp-program "sbcl")
-  :hook
-      (lisp-mode . slime-mode)
-      (slime-repl-mode . eldoc-mode)
-      (slime-connected . (lambda ()
-                       (slime-repl-eval-string "(load \"~/.lisp-utils/utils.lisp\")")))
-  :config
-      (slime-setup '(slime-fancy)))
-
 (setq language-modes '(haskell-mode
                       json-mode
                       package-lint))
@@ -112,6 +100,8 @@
   (eval `(use-package ,pkg
            :ensure t
            :defer t)))
+
+(use-package geiser-guile :ensure t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General Config
