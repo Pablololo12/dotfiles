@@ -1,0 +1,23 @@
+(use-modules (srfi srfi-41))
+(use-modules (ice-9 regex)
+             (ice-9 rdelim))
+
+(define-stream (file-read-stream filename)
+  (let ((p (open-input-file filename)))
+    (stream-let loop ((c (read-line p)))
+      (if (eof-object? c)
+          (begin (close-input-port p)
+                 stream-null)
+          (stream-cons c
+            (loop (read-line p)))))))
+
+(define (filter-file regex input output)
+  (let* ((in (file-read-stream input))
+        (re (make-regexp regex))
+        (out (open-output-file output))
+        (filt (stream-filter (lambda (x)
+                               (regexp-exec re x)) in)))
+    (stream-for-each (lambda (x)
+                       (display x out)
+                       (newline out)) filt)
+    (close-output-port out)))

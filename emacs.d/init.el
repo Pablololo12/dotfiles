@@ -45,9 +45,6 @@
 (defun my/project-switch-hook (orig-fun &rest args)
   "Run custom actions after switching project."
   (let ((result (apply orig-fun args)))
-    ;; Your actions here:
-    (message "Switched to project: %s" (car args))
-    ;; Example: rename tab to project name
     (tab-bar-rename-tab
      (file-name-nondirectory (directory-file-name (car args))))
     result))
@@ -83,8 +80,6 @@
 ;; Set 4 spaces
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 4)
-(setq c-set-style "k&r")
-(setq c-basic-offset 4)
 ;; Autoclose brackets
 (electric-pair-mode t)
 
