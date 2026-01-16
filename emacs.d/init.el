@@ -13,10 +13,6 @@
 (menu-bar-mode -1)
 (column-number-mode 1)
 
-(when (eq system-type 'darwin)
-  (setenv "PATH" (concat "/opt/homebrew/bin:/opt/homebrew/sbin:" (getenv "PATH")))
-    (setq exec-path (split-string (getenv "PATH") path-separator)))
-
 ;; No need for ~ files when editing
 (setq
  create-lockfiles nil
@@ -25,6 +21,12 @@
  create-lockfiles nil)
 
 (setq custom-file "~/.emacs.custom")
+
+;; under emacs.d/systems we have specific configs per OS
+(add-to-list 'load-path (expand-file-name "systems" user-emacs-directory))
+(let ((syslib (format "system-%s" (replace-regexp-in-string "/" "-" (symbol-name system-type)))))
+  (when (locate-library syslib)
+    (require (intern syslib))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General Packages
@@ -42,6 +44,7 @@
   ;; Ignore build directories
   (add-to-list 'project-vc-ignores "build"))
 
+;; When changing project it changes the tab name
 (defun my/project-switch-hook (orig-fun &rest args)
   "Run custom actions after switching project."
   (let ((result (apply orig-fun args)))
@@ -85,7 +88,6 @@
 
 ;; C++ options
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
-(add-to-list 'auto-mode-alist '("\\.cppm\\'" . c++-mode))
 
 (setq language-modes '(haskell-mode
                       json-mode
@@ -142,12 +144,7 @@
 ;;; UI
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(prefer-coding-system 'utf-8)
 (set-face-font 'default "CommitMono Light 14")
-
-(setq ns-use-srgb-colorspace t)
-
-(global-prettify-symbols-mode +1)
 
 ;; No sound
 (setq visible-bell t)
@@ -156,10 +153,7 @@
 ;; tab-bar
 (require 'tab-bar)       ; load the tab-bar feature immediately
 (tab-bar-mode 1)      ; enable the C-x t prefix at once
-(setq-default tab-bar-new-button-show nil ;; don't show new tab button
-        tab-bar-close-button-show nil ;; don't show tab close button
-        tab-bar-new-tab-choice "*scratch*"
-        tab-line-close-button-show nil) ;; don't show tab close button
+(setq-default tab-bar-new-tab-choice "*scratch*")
 
 ;; Rebalance windows everytime you split or close
 (add-hook 'window-configuration-change-hook #'balance-windows)
